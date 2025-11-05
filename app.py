@@ -87,12 +87,12 @@ def iniciarSesion():
 
     return make_response(jsonify(registros))
 
-@app.route("/apoyos")
+@app.route("/calificaciones")
 def apoyos():
-    return render_template("apoyos.html")
+    return render_template("calificaciones.html")
 
-@app.route("/tbodyApoyo")
-def tbodyApoyo():
+""" @app.route("/tbodyCalificacion")
+def tbodyCalificacion():
     if not con.is_connected():
         con.reconnect()
 
@@ -104,7 +104,7 @@ def tbodyApoyo():
            monto,
            causa	
 
-    FROM apoyos
+    FROM calificaciones
 
     ORDER BY idApoyo DESC
 
@@ -125,26 +125,7 @@ def tbodyApoyo():
     """
 
     return render_template("tbodyApoyo.html", apoyos=registros)
-
-@app.route("/productos/ingredientes/<int:idApoyo>")
-def productosIngredientes(id):
-    if not con.is_connected():
-        con.reconnect()
-
-    cursor = con.cursor(dictionary=True)
-    sql    = """
-    SELECT productos.Nombre_Producto, ingredientes.*, productos_ingredientes.Cantidad FROM productos_ingredientes
-    INNER JOIN productos ON productos.Id_Producto = productos_ingredientes.Id_Producto
-    INNER JOIN ingredientes ON ingredientes.Id_Ingrediente = productos_ingredientes.Id_Ingrediente
-    WHERE productos_ingredientes.Id_Producto = %s
-    ORDER BY productos.Nombre_Producto
     """
-
-    cursor.execute(sql, (id, ))
-    registros = cursor.fetchall()
-
-    return render_template("modal.html", productosIngredientes=registros)
-
 @app.route("/mascotas")
 def listarMascotas():
     if not con.is_connected():
@@ -158,22 +139,8 @@ def listarMascotas():
 
     return make_response(jsonify(registros))
 
-@app.route("/padrinos")
-def listarPadrinos():
-    if not con.is_connected():
-        con.reconnect()
-
-    cursor = con.cursor(dictionary=True)
-    sql = "SELECT idPadrino, nombrePadrino FROM padrinos ORDER BY nombrePadrino"
-    cursor.execute(sql)
-    registros = cursor.fetchall()
-    con.close()
-
-    return make_response(jsonify(registros))
-
-
-@app.route("/apoyos/buscar", methods=["GET"])
-def buscarApoyos():
+@app.route("/calificaciones/buscar", methods=["GET"])
+def buscarCalificaciones():
     if not con.is_connected():
         con.reconnect()
 
@@ -183,24 +150,20 @@ def buscarApoyos():
     
     cursor = con.cursor(dictionary=True)
     sql    = """
-    SELECT idApoyo,
-           idMascota,
-           idPadrino,
-           monto,
-           causa	
+    SELECT idCalificacion,
+           idAlumno,
+           Calificacion	
 
-    FROM apoyos
+    FROM calificaciones
 
-    WHERE idMascota LIKE %s
-    OR    idPadrino LIKE %s
-    OR    monto     LIKE %s
-    OR    causa     LIKE %s
+    WHERE idAlumno LIKE %s
+    OR    Calificacion LIKE %s
 
-    ORDER BY idApoyo DESC
+    ORDER BY idCalificaion DESC
 
     LIMIT 10 OFFSET 0
     """
-    val    = (busqueda, busqueda, busqueda, busqueda)
+    val    = (busqueda, busqueda)
 
     try:
         cursor.execute(sql, val)
@@ -225,7 +188,7 @@ def buscarApoyos():
 
     return make_response(jsonify(registros))
 
-@app.route("/apoyo", methods=["POST"])
+""" @app.route("/apoyo", methods=["POST"])
 # Usar cuando solo se quiera usar CORS en rutas específicas
 # @cross_origin()
 def guardarApoyo():
@@ -307,7 +270,8 @@ def eliminarApoyo():
     con.commit()
     con.close()
 
-    return make_response(jsonify({}))
+    return make_response(jsonify({})) """
+
 
 
 
