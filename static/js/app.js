@@ -8,6 +8,17 @@ function activeMenuOption(href) {
         .attr("aria-current", "page");
 }
 
+// --- Funciones auxiliares simples ---
+function disableAll() {
+    $("button, input, select").attr("disabled", true);
+}
+function enableAll() {
+    $("button, input, select").removeAttr("disabled");
+}
+function pop(selector, mensaje, tipo = "info") {
+    $(selector).html(`<div class="alert alert-${tipo} mt-2">${mensaje}</div>`);
+}
+
 const app = angular.module("angularjsApp", ["ngRoute"]);
 
 app.config(function ($routeProvider, $locationProvider) {
@@ -15,8 +26,8 @@ app.config(function ($routeProvider, $locationProvider) {
 
     $routeProvider
         .when("/", {
-            templateUrl: "/app",
-            controller: "appCtrl"
+            templateUrl: "login",
+            controller: "loginCtrl"
         })
         .when("/calificaciones", {
             templateUrl: "/calificaciones",
@@ -27,52 +38,39 @@ app.config(function ($routeProvider, $locationProvider) {
         });
 });
 
+// --- Controlador del login ---
+app.controller("loginCtrl", function ($scope, $http, $rootScope) {
+    $("#frmInicioSesion").off("submit").submit(function (event) {
+        event.preventDefault();
 
-app.controller("appCtrl", function ($scope, $http, $window) {
+        pop(".div-inicio-sesion", 'Iniciando sesión, espere...', "primary");
+        disableAll();
 
-    $scope.usuario = "";
-    $scope.contrasena = "";
-    $scope.mensajeError = "";
+        $.post("iniciarSesion", $(this).serialize(), function (respuesta) {
+            enableAll();
 
-    $scope.iniciarSesion = function () {
-        if (!$scope.usuario || !$scope.contrasena) {
-            $scope.mensajeError = "Por favor ingresa usuario y contraseña.";
-            return;
-        }
+            if (respuesta.length) {
+                // ✅ Guardar el usuario activo correctamente
+                localStorage.setItem("login", "1");
+                localStorage.setItem("usuarioActivo", JSON.stringify(respuesta[0]));
 
-        const datos = new FormData();
-        datos.append("txtUsuario", $scope.usuario);
-        datos.append("txtContrasena", $scope.contrasena);
+                $("#frmInicioSesion").get(0).reset();
 
-        fetch("/iniciarSesion", {
-            method: "POST",
-            body: datos
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.length > 0) {
-                
-                $scope.mensajeError = "";
-                localStorage.setItem("usuarioActivo", JSON.stringify(data[0]));
-                $window.location.href = "#/calificaciones";
-            } else {
-
-                $scope.mensajeError = "Usuario o contraseña incorrectos.";
+                // ✅ Redirigir a la página principal (calificaciones)
+                window.location.href = "#/calificaciones";
+                return;
             }
-            $scope.$apply();
-        })
-        .catch(err => {
-            console.error("Error en el login:", err);
-            $scope.mensajeError = "Error al conectar con el servidor.";
-            $scope.$apply();
-        });
-    };
 
+            pop(".div-inicio-sesion", "Usuario y/o contraseña incorrectos", "danger");
+        }).fail(function () {
+            enableAll();
+            pop(".div-inicio-sesion", "Error al conectar con el servidor", "danger");
+        });
+    });
 });
 
-
+// --- Controlador de calificaciones ---
 app.controller("calificacionesCtrl", function ($scope, $http) {
-
     // --- Validar si hay usuario logueado ---
     const usuario = JSON.parse(localStorage.getItem("usuarioActivo") || "null");
     if (!usuario) {
@@ -86,7 +84,6 @@ app.controller("calificacionesCtrl", function ($scope, $http) {
     function buscarCalificaciones(texto = "") {
         texto = texto.trim();
         if (texto === "") {
-            // si no hay texto, limpiar tabla
             $("#tbodyCalificacion").html("<tr><td colspan='3' class='text-center'>Ingresa algo para buscar</td></tr>");
             return;
         }
@@ -100,8 +97,7 @@ app.controller("calificacionesCtrl", function ($scope, $http) {
                             <td>${calificacion.idCalificacion}</td>
                             <td>${calificacion.idAlumno}</td>
                             <td>${calificacion.Calificacion}</td>
-                        </tr>
-                    `;
+                        </tr>`;
                 });
             } else {
                 html = "<tr><td colspan='3' class='text-center'>No se encontraron resultados</td></tr>";
@@ -109,7 +105,6 @@ app.controller("calificacionesCtrl", function ($scope, $http) {
             $("#tbodyCalificacion").html(html);
         });
     }
-
 
     $(document).on("click", "#btnBuscar", function () {
         const texto = $("#Contbuscar").val();
@@ -135,4 +130,3 @@ app.controller("calificacionesCtrl", function ($scope, $http) {
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
-
