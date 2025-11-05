@@ -125,7 +125,7 @@ def tbodyCalificacion():
     """
 
     return render_template("tbodyApoyo.html", apoyos=registros)
-    """
+    
 @app.route("/mascotas")
 def listarMascotas():
     if not con.is_connected():
@@ -138,7 +138,7 @@ def listarMascotas():
     con.close()
 
     return make_response(jsonify(registros))
-
+"""
 @app.route("/calificaciones/buscar", methods=["GET"])
 def buscarCalificaciones():
     if not con.is_connected():
@@ -271,6 +271,7 @@ def eliminarApoyo():
     con.close()
 
     return make_response(jsonify({})) """
+
 
 
 
