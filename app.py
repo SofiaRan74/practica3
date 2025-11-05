@@ -159,7 +159,7 @@ def buscarCalificaciones():
     WHERE idAlumno LIKE %s
     OR    Calificacion LIKE %s
 
-    ORDER BY idCalificaion DESC
+    ORDER BY idCalificacion DESC
 
     LIMIT 10 OFFSET 0
     """
@@ -271,6 +271,7 @@ def eliminarApoyo():
     con.close()
 
     return make_response(jsonify({})) """
+
 
 
 
