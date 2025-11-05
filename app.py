@@ -91,22 +91,21 @@ def iniciarSesion():
 def apoyos():
     return render_template("calificaciones.html")
 
-""" @app.route("/tbodyCalificacion")
+@app.route("/tbodyCalificacion")
 def tbodyCalificacion():
     if not con.is_connected():
         con.reconnect()
 
     cursor = con.cursor(dictionary=True)
     sql    = """
-    SELECT idApoyo,
-           idMascota,
-           idPadrino,
-           monto,
-           causa	
+    SELECT idCalificacion,
+           idAlumno,
+           Calificacion,
+           Categoria
 
     FROM calificaciones
 
-    ORDER BY idApoyo DESC
+    ORDER BY idCalificacion DESC
 
     LIMIT 10 OFFSET 0
     """
@@ -124,8 +123,8 @@ def tbodyCalificacion():
         registro["Hora"]       = fecha_hora.strftime("%H:%M:%S")
     """
 
-    return render_template("tbodyApoyo.html", apoyos=registros)
-    
+    return render_template("tbodyCalificacion.html", apoyos=registros)
+"""  
 @app.route("/mascotas")
 def listarMascotas():
     if not con.is_connected():
@@ -138,7 +137,7 @@ def listarMascotas():
     con.close()
 
     return make_response(jsonify(registros))
-"""
+
 @app.route("/calificaciones/buscar", methods=["GET"])
 def buscarCalificaciones():
     if not con.is_connected():
@@ -152,18 +151,20 @@ def buscarCalificaciones():
     sql    = """
     SELECT idCalificacion,
            idAlumno,
-           Calificacion	
+           Calificacion,
+           Categoria
 
     FROM calificaciones
 
     WHERE idAlumno LIKE %s
     OR    Calificacion LIKE %s
+    OR    Categoria LIKE %s
 
     ORDER BY idCalificacion DESC
 
     LIMIT 10 OFFSET 0
     """
-    val    = (busqueda, busqueda)
+    val    = (busqueda, busqueda, busqueda)
 
     try:
         cursor.execute(sql, val)
@@ -188,7 +189,7 @@ def buscarCalificaciones():
 
     return make_response(jsonify(registros))
 
-""" @app.route("/apoyo", methods=["POST"])
+@app.route("/apoyo", methods=["POST"])
 # Usar cuando solo se quiera usar CORS en rutas específicas
 # @cross_origin()
 def guardarApoyo():
@@ -271,6 +272,7 @@ def eliminarApoyo():
     con.close()
 
     return make_response(jsonify({})) """
+
 
 
 
