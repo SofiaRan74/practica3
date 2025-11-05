@@ -1,6 +1,3 @@
-// ===============================
-// FUNCIONES GENERALES
-// ===============================
 function activeMenuOption(href) {
     $(".app-menu .nav-link")
         .removeClass("active")
@@ -11,9 +8,6 @@ function activeMenuOption(href) {
         .attr("aria-current", "page");
 }
 
-// ===============================
-// CONFIGURACIÓN DE ANGULARJS
-// ===============================
 const app = angular.module("angularjsApp", ["ngRoute"]);
 
 app.config(function ($routeProvider, $locationProvider) {
@@ -141,3 +135,4 @@ app.controller("calificacionesCtrl", function ($scope, $http) {
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
