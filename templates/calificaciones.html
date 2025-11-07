@@ -17,7 +17,7 @@
 
       <div class="row">
         <!-- Repetición dinámica de alumnos -->
-        <div class="col-12 col-sm-6 col-md-4" ng-repeat="a in top3Alumnos">
+        <div class="col-12 col-sm-6 col-md-4" ng-repeat="c in top3Alumnos">
           <div class="card text-bg-primary mb-3 h-100">
             <div class="card-header text-center fw-bold">
               Puesto #{{ "{{ $index + 1 }}" }}
@@ -46,28 +46,6 @@
   </div>
 </div>
 
-
-<div class="div-to-complete-screen"></div>
-<div class="input-group mb-5">
-    <input type="text" class="form-control" id="Contbuscar" name="Contbuscar" placeholder="Buscar...">
-    <button class="btn btn-primary" id="btnBuscar">Buscar</button>
-</div>
-<div class="table-responsive">
-    <table class="table table-sm">
-        <thead class="table-active">
-            <tr>
-                <th>Id</th>
-                <th>Mascota</th>
-                <th>Padrino</th>
-                <th>Monto</th>
-                <th>Causa</th>
-                <th></th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody id="tbodyApoyo"></tbody>
-    </table>
-</div>
 
 
 
