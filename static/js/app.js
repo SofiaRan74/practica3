@@ -1,132 +1,698 @@
 function activeMenuOption(href) {
-    $(".app-menu .nav-link")
-        .removeClass("active")
-        .removeAttr('aria-current');
+    $("#appMenu .nav-link")
+    .removeClass("active")
+    .removeAttr('aria-current')
 
     $(`[href="${(href ? href : "#/")}"]`)
-        .addClass("active")
-        .attr("aria-current", "page");
+    .addClass("active")
+    .attr("aria-current", "page")
 }
-
-// --- Funciones auxiliares simples ---
 function disableAll() {
-    $("button, input, select").attr("disabled", true);
+    const elements = document.querySelectorAll(".while-waiting")
+    elements.forEach(function (el, index) {
+        el.setAttribute("disabled", "true")
+        el.classList.add("disabled")
+    })
 }
 function enableAll() {
-    $("button, input, select").removeAttr("disabled");
+    const elements = document.querySelectorAll(".while-waiting")
+    elements.forEach(function (el, index) {
+        el.removeAttribute("disabled")
+        el.classList.remove("disabled")
+    })
 }
-function pop(selector, mensaje, tipo = "info") {
-    $(selector).html(`<div class="alert alert-${tipo} mt-2">${mensaje}</div>`);
+function debounce(fun, delay) {
+    let timer
+    return function (...args) {
+        clearTimeout(timer)
+        timer = setTimeout(function () {
+            fun.apply(this, args)
+        }, delay)
+    }
 }
 
-const app = angular.module("angularjsApp", ["ngRoute"]);
 
-app.config(function ($routeProvider, $locationProvider) {
-    $locationProvider.hashPrefix("");
+const DateTime = luxon.DateTime
+let lxFechaHora
+let diffMs = 0
+const configFechaHora = {
+    locale: "es",
+    weekNumbers: true,
+    // enableTime: true,
+    minuteIncrement: 15,
+    altInput: true,
+    altFormat: "d/F/Y",
+    dateFormat: "Y-m-d",
+    // time_24hr: false
+}
+
+const app = angular.module("angularjsApp", ["ngRoute"])
+
+
+app.service("SesionService", function () {
+    this.tipo = null
+    this.usr  = null
+
+    this.setTipo = function (tipo) {
+        this.tipo = tipo
+    }
+    this.getTipo = function () {
+        return this.tipo
+    }
+
+    this.setUsr = function (usr) {
+        this.usr = usr
+    }
+    this.getUsr = function () {
+        return this.usr
+    }
+})
+app.factory("CategoriaFactory", function () {
+    function Categoria(titulo, productos) {
+        this.titulo    = titulo
+        this.productos = productos
+    }
+
+    Categoria.prototype.getInfo = function () {
+        return {
+            titulo: this.titulo,
+            productos: this.productos
+        }
+    }
+
+    return {
+        create: function (titulo, productos) {
+            return new Categoria(titulo, productos)
+        }
+    }
+})
+app.service("MensajesService", function () {
+    this.modal = modal
+    this.pop   = pop
+    this.toast = toast
+})
+app.service("ProductoAPI", function ($q) {
+    this.producto = function (id) {
+        var deferred = $q.defer()
+
+        $.get(`producto/${id}`)
+        .done(function (producto){
+            deferred.resolve(producto)
+        })
+        .fail(function (error) {
+            deferred.reject(error)
+        })
+
+        return deferred.promise
+   }
+})
+app.service("RecetaAPI", function ($q) {
+    this.ingredientesProducto = function (producto) {
+        var deferred = $q.defer()
+
+        $.get(`productos/ingredientes/${producto}`)
+        .done(function (ingredientes){
+            deferred.resolve(ingredientes)
+        })
+        .fail(function (error) {
+            deferred.reject(error)
+        })
+
+        return deferred.promise
+    }
+})
+app.service("CalificacionAPI", function ($q) {
+    this.buscarCalificaciones = function () {
+        const deferred = $q.defer();
+        $.get("calificaciones/buscar")
+            .done(data => deferred.resolve(data))
+            .fail(err => deferred.reject(err));
+        return deferred.promise;
+    };
+});
+app.factory("RecetaFacade", function(ProductoAPI, RecetaAPI, $q) {
+    return {
+        obtenerRecetaProducto: function(producto) {
+            return $q.all({
+                producto: ProductoAPI.producto(producto),
+                ingredientes: RecetaAPI.ingredientesProducto(producto)
+            })
+        }
+    };
+})
+app.factory("CalificacionFactory", function () {
+    function Calificacion(idCalificacion, idAlumno, Calificacion, Categoria) {
+        this.idCalificacion = idCalificacion;
+        this.idAlumno = idAlumno;
+        this.Calificacion = Calificacion;
+        this.Categoria = Categoria;
+    }
+
+    Calificacion.prototype.getInfo = function () {
+        return {
+            idCalificacion: this.idCalificacion,
+            idAlumno: this.idAlumno,
+            Calificacion: this.Calificacion,
+            Categoria: this.Categoria
+        };
+    };
+
+    return {
+        create: function (idCalificacion, idAlumno, Calificacion, Categoria) {
+            return new Playlist(idCalificacion, idAlumno, Calificacion, Categoria);
+        }
+    };
+});
+
+app.config(function ($routeProvider, $locationProvider, $provide) {
+    $provide.decorator("MensajesService", function ($delegate, $log) {
+        const originalModal = $delegate.modal
+        const originalPop   = $delegate.pop
+        const originalToast = $delegate.toast
+
+        $delegate.modal = function (msg) {
+            originalModal(msg, "Mensaje", [
+                {"html": "Aceptar", "class": "btn btn-lg btn-secondary", defaultButton: true, dismiss: true}
+            ])
+        }
+        $delegate.pop = function (msg) {
+            $(".div-temporal").remove()
+            $("body").prepend($("<div />", {
+                class: "div-temporal"
+            }))
+            originalPop(".div-temporal", msg, "info")
+        }
+        $delegate.toast = function (msg) {
+            originalToast(msg, 2)
+        }
+
+        return $delegate
+    })
+
+    $locationProvider.hashPrefix("")
 
     $routeProvider
-        .when("/", {
-            templateUrl: "login",
-            controller: "loginCtrl"
-        })
-        .when("/calificaciones", {
-            templateUrl: "/calificaciones",
-            controller: "calificacionesCtrl"
-        })
-        .otherwise({
-            redirectTo: "/"
-        });
-});
+    .when("/", {
+        templateUrl: "login",
+        controller: "loginCtrl"
+    })
+    .when("/calificaciones", {
+        templateUrl: "calificaciones",
+        controller: "CalificacionesCtrl"
+    })
+    .otherwise({
+        redirectTo: "/"
+    })
+})
+app.run(["$rootScope", "$location", "$timeout", "SesionService", function($rootScope, $location, $timeout, SesionService) {
+    $rootScope.slide             = ""
+    $rootScope.spinnerGrow       = false
+    $rootScope.sendingRequest    = false
+    $rootScope.incompleteRequest = false
+    $rootScope.completeRequest   = false
+    $rootScope.login             = localStorage.getItem("login")
+    const defaultRouteAuth       = "#/calificaciones"
+    let timesChangesSuccessRoute = 0
 
-// --- Controlador del login ---
+
+    function actualizarFechaHora() {
+        lxFechaHora = DateTime.now().plus({
+            milliseconds: diffMs
+        })
+
+        $rootScope.angularjsHora = lxFechaHora.setLocale("es").toFormat("hh:mm:ss a")
+        $timeout(actualizarFechaHora, 500)
+    }
+    actualizarFechaHora()
+
+
+    let preferencias = localStorage.getItem("preferencias")
+    try {
+        preferencias = (preferencias ? JSON.parse(preferencias) :  {})
+    }
+    catch (error) {
+        preferencias = {}
+    }
+    $rootScope.preferencias = preferencias
+    SesionService.setTipo(preferencias.tipo)
+    SesionService.setUsr(preferencias.usr)
+
+
+    $rootScope.$on("$routeChangeSuccess", function (event, current, previous) {
+        $rootScope.spinnerGrow = false
+        const path             = current.$$route.originalPath
+
+
+        // AJAX Setup
+        $.ajaxSetup({
+            beforeSend: function (xhr) {
+                // $rootScope.sendingRequest = true
+            },
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("JWT")}`
+            },
+            error: function (error) {
+                $rootScope.sendingRequest    = false
+                $rootScope.incompleteRequest = false
+                $rootScope.completeRequest   = true
+
+                const status = error.status
+                enableAll()
+
+                if (status) {
+                    const respuesta = error.responseText
+                    console.log("error", respuesta)
+
+                    if (status == 401) {
+                        cerrarSesion()
+                        return
+                    }
+
+                    modal(respuesta, "Error", [
+                        {html: "Aceptar", class: "btn btn-lg btn-secondary", defaultButton: true, dismiss: true}
+                    ])
+                }
+                else {
+                    toast("Error en la petici&oacute;n.")
+                    $rootScope.sendingRequest    = false
+                    $rootScope.incompleteRequest = true
+                    $rootScope.completeRequest   = false
+                }
+            },
+            statusCode: {
+                200: function (respuesta) {
+                    $rootScope.sendingRequest    = false
+                    $rootScope.incompleteRequest = false
+                    $rootScope.completeRequest   = true
+                },
+                401: function (respuesta) {
+                    cerrarSesion()
+                },
+            }
+        })
+
+        // solo hacer si se carga una ruta existente que no sea el splash
+        if (path.indexOf("splash") == -1) {
+            // validar login
+            function validarRedireccionamiento() {
+                const login = localStorage.getItem("login")
+
+                if (login) {
+                    if (path == "/") {
+                        window.location = defaultRouteAuth
+                        return
+                    }
+
+                    $(".btn-cerrar-sesion").click(function (event) {
+                        $.post("cerrarSesion")
+                        $timeout(function () {
+                            cerrarSesion()
+                        }, 500)
+                    })
+                }
+                else if ((path != "/")
+                    &&  (path.indexOf("emailToken") == -1)
+                    &&  (path.indexOf("resetPassToken") == -1)) {
+                    window.location = "#/"
+                }
+            }
+            function cerrarSesion() {
+                localStorage.removeItem("JWT")
+                localStorage.removeItem("login")
+                localStorage.removeItem("preferencias")
+
+                const login      = localStorage.getItem("login")
+                let preferencias = localStorage.getItem("preferencias")
+
+                try {
+                    preferencias = (preferencias ? JSON.parse(preferencias) :  {})
+                }
+                catch (error) {
+                    preferencias = {}
+                }
+
+                $rootScope.redireccionar(login, preferencias)
+            }
+            $rootScope.redireccionar = function (login, preferencias) {
+                $rootScope.login        = login
+                $rootScope.preferencias = preferencias
+
+                validarRedireccionamiento()
+            }
+            validarRedireccionamiento()
+
+
+            // animate.css
+            const active = $("#appMenu .nav-link.active").parent().index()
+            const click  = $(`[href^="#${path}"]`).parent().index()
+
+            if ((active <= 0)
+            ||  (click  <= 0)
+            ||  (active == click)) {
+                $rootScope.slide = "animate__animated animate__faster animate__bounceIn"
+            }
+            else if (active != click) {
+                $rootScope.slide  = "animate__animated animate__faster animate__slideIn"
+                $rootScope.slide += ((active > click) ? "Left" : "Right")
+            }
+
+
+            // swipe
+            if (path.indexOf("calificaciones") != -1) {
+                $rootScope.leftView      = ""
+                $rootScope.rightView     = ""
+                $rootScope.leftViewLink  = ""
+                $rootScope.rightViewLink = ""
+            }
+            else {
+                $rootScope.leftView      = ""
+                $rootScope.rightView     = ""
+                $rootScope.leftViewLink  = ""
+                $rootScope.rightViewLink = ""
+            }
+
+            let offsetX
+            let threshold
+            let startX = 0
+            let startY = 0
+            let currentX = 0
+            let isDragging = false
+            let isScrolling = false
+            let moved = false
+            let minDrag = 5
+
+            function resetDrag() {
+                offsetX = -window.innerWidth
+                threshold = window.innerWidth / 4
+                $("#appSwipeWrapper").get(0).style.transition = "transform 0s ease"
+                $("#appSwipeWrapper").get(0).style.transform = `translateX(${offsetX}px)`
+            }
+            function startDrag(event) {
+                if (isScrolling && isPartiallyVisible($("#appContent").get(0))) {
+                    resetDrag()
+                }
+
+                isDragging  = true
+                moved       = false
+                isScrolling = false
+
+                startX = getX(event)
+                startY = getY(event)
+
+                $("#appSwipeWrapper").get(0).style.transition = "none"
+                document.body.style.userSelect = "none"
+            }
+            function onDrag(event) {
+                if (!isDragging
+                ||  $(event.target).parents("table").length
+                ||  $(event.target).parents("button").length
+                ||  $(event.target).parents("span").length
+                ||   (event.target.nodeName == "BUTTON")
+                ||   (event.target.nodeName == "SPAN")
+                || $(event.target).parents(".plotly-grafica").length
+                || $(event.target).hasClass("plotly-grafica")) {
+                    return
+                }
+
+                let x = getX(event)
+                let y = getY(event)
+
+                let deltaX = x - startX
+                let deltaY = y - startY
+                
+                if (isScrolling) {
+                    if (isPartiallyVisible($("#appContent").get(0))) {
+                        resetDrag()
+                    }
+                    return
+                }
+
+                if (!moved) {
+                    if (Math.abs(deltaY) > Math.abs(deltaX)) {
+                        isScrolling = true
+                        return
+                    }
+                }
+
+                if (Math.abs(deltaX) > minDrag) {
+                    moved = true
+                }
+
+                currentX = offsetX + deltaX
+                $("#appSwipeWrapper").get(0).style.transform = `translateX(${currentX}px)`
+                $("#appSwipeWrapper").get(0).style.cursor = "grabbing"
+
+                event.preventDefault()
+            }
+            function isVisible(element) {
+                const rect = element.getBoundingClientRect()
+                return rect.left >= 0 && rect.right <= window.innerWidth
+            }
+            function isPartiallyVisible(element) {
+                const rect = element.getBoundingClientRect()
+                return rect.right > 0 && rect.left < window.innerWidth
+            }
+            function endDrag() {
+                if (!isDragging) {
+                    return
+                }
+                $("#appSwipeWrapper").get(0).style.cursor = "grab"
+                isDragging = false
+                document.body.style.userSelect = ""
+                if (isScrolling) {
+                    if (isPartiallyVisible($("#appContent").get(0))) {
+                        resetDrag()
+                    }
+                    return
+                }
+
+                if (!moved) {
+                    $("#appSwipeWrapper").get(0).style.transition = "transform 0.3s ease"
+                    $("#appSwipeWrapper").get(0).style.transform = `translateX(${offsetX}px)`
+                    return
+                }
+
+                let delta = currentX - offsetX
+                let finalX = offsetX
+
+                let href, visible
+
+                if (delta > threshold && offsetX < 0) {
+                    finalX = offsetX + window.innerWidth
+                    $("#appContentLeft").css("visibility", "visible")
+                    $("#appContentRight").css("visibility", "hidden")
+                    href = $("#appContentLeft").children("div").eq(0).attr("data-href")
+                    visible = isPartiallyVisible($("#appContentLeft").get(0))
+                } else if (delta < -threshold && offsetX > -2 * window.innerWidth) {
+                    finalX = offsetX - window.innerWidth
+                    $("#appContentLeft").css("visibility", "hidden")
+                    $("#appContentRight").css("visibility", "visible")
+                    href = $("#appContentRight").children("div").eq(0).attr("data-href")
+                    visible = isPartiallyVisible($("#appContentRight").get(0))
+                }
+
+                if (href && visible) {
+                    resetDrag()
+                    $timeout(function () {
+                        window.location = href
+                    }, 100)
+                } else if (!href) {
+                    resetDrag()
+                    return
+                }
+
+                $("#appSwipeWrapper").get(0).style.transition = "transform 0.3s ease"
+                $("#appSwipeWrapper").get(0).style.transform = `translateX(${finalX}px)`
+                offsetX = finalX
+            }
+            function getX(event) {
+                return event.touches ? event.touches[0].clientX : event.clientX
+            }
+            function getY(event) {
+                return event.touches ? event.touches[0].clientY : event.clientY
+            }
+            function completeScreen() {
+                $(".div-to-complete-screen").css("height", 0)
+                const altoHtml    = document.documentElement.getBoundingClientRect().height
+                const altoVisible = document.documentElement.clientHeight
+                $(".div-to-complete-screen").css("height", ((altoHtml < altoVisible)
+                ? (altoVisible - altoHtml)
+                : 0) + (16 * 4))
+            }
+
+            $(document).off("mousedown touchstart mousemove touchmove click", "#appSwipeWrapper")
+
+            $(document).on("mousedown",  "#appSwipeWrapper", startDrag)
+            $(document).on("touchstart", "#appSwipeWrapper", startDrag)
+            $(document).on("mousemove",  "#appSwipeWrapper", onDrag)
+            // $(document).on("touchmove",  "#appSwipeWrapper", onDrag)
+            document.querySelector("#appSwipeWrapper").addEventListener("touchmove", onDrag, {
+                passive: false
+            })
+            $(document).on("mouseup",    "#appSwipeWrapper", endDrag)
+            $(document).on("mouseleave", "#appSwipeWrapper", endDrag)
+            $(document).on("touchend",   "#appSwipeWrapper", endDrag)
+            $(document).on("click",      "#appSwipeWrapper", function (event) {
+                if (moved) {
+                    event.stopImmediatePropagation()
+                    event.preventDefault()
+                    return false
+                }
+            })
+            $(window).on("resize", function (event) {
+                resetDrag()
+                completeScreen()
+            })
+
+            resetDrag()
+
+
+            // solo hacer una vez cargada la animación
+            $timeout(function () {
+                // animate.css
+                $rootScope.slide = ""
+
+
+                // swipe
+                completeScreen()
+
+
+                // solo hacer al cargar la página por primera vez
+                if (timesChangesSuccessRoute == 0) {
+                    timesChangesSuccessRoute++
+                    
+
+                    // JQuery Validate
+                    $.extend($.validator.messages, {
+                        required: "Llena este campo",
+                        number: "Solo números",
+                        digits: "Solo números enteros",
+                        min: $.validator.format("No valores menores a {0}"),
+                        max: $.validator.format("No valores mayores a {0}"),
+                        minlength: $.validator.format("Mínimo {0} caracteres"),
+                        maxlength: $.validator.format("Máximo {0} caracteres"),
+                        rangelength: $.validator.format("Solo {0} caracteres"),
+                        equalTo: "El texto de este campo no coincide con el anterior",
+                        date: "Ingresa fechas validas",
+                        email: "Ingresa un correo electrónico valido"
+                    })
+
+
+                    // gets
+                    const startTimeRequest = Date.now()
+                    $.get("fechaHora", function (fechaHora) {
+                        const endTimeRequest = Date.now()
+                        const rtt            = endTimeRequest - startTimeRequest
+                        const delay          = rtt / 2
+
+                        const lxFechaHoraServidor = DateTime.fromFormat(fechaHora, "yyyy-MM-dd hh:mm:ss")
+                        // const fecha = lxFechaHoraServidor.toFormat("dd/MM/yyyy hh:mm:ss")
+                        const lxLocal = luxon.DateTime.fromMillis(endTimeRequest - delay)
+
+                        diffMs = lxFechaHoraServidor.toMillis() - lxLocal.toMillis()
+                    })
+
+                    $.get("preferencias", {
+                        token: localStorage.getItem("fbt")
+                    }, function (respuesta) {
+                        if (typeof respuesta != "object") {
+                            return
+                        }
+
+                        console.log("✅ Respuesta recibida:", respuesta)
+
+                        const login      = "1"
+                        let preferencias = respuesta
+
+                        localStorage.setItem("login", login)
+                        localStorage.setItem("preferencias", JSON.stringify(preferencias))
+                        $rootScope.redireccionar(login, preferencias)
+                    })
+
+
+                    // events
+                    $(document).on("click", ".toggle-password", function (event) {
+                        const prev = $(this).parent().find("input")
+
+                        if (prev.prop("disabled")) {
+                            return
+                        }
+
+                        prev.focus()
+
+                        if ("selectionStart" in prev.get(0)){
+                            $timeout(function () {
+                                prev.get(0).selectionStart = prev.val().length
+                                prev.get(0).selectionEnd   = prev.val().length
+                            }, 0)
+                        }
+
+                        if (prev.attr("type") == "password") {
+                            $(this).children().first()
+                            .removeClass("bi-eye")
+                            .addClass("bi-eye-slash")
+                            prev.attr({
+                                "type": "text",
+                                "autocomplete": "off",
+                                "data-autocomplete": prev.attr("autocomplete")
+                            })
+                            return
+                        }
+
+                        $(this).children().first()
+                        .addClass("bi-eye")
+                        .removeClass("bi-eye-slash")
+                        prev.attr({
+                            "type": "password",
+                            "autocomplete": prev.attr("data-autocomplete")
+                        })
+                    })
+                }
+            }, 500)
+
+            activeMenuOption(`#${path}`)
+        }
+    })
+    $rootScope.$on("$routeChangeError", function () {
+        $rootScope.spinnerGrow = false
+    })
+    $rootScope.$on("$routeChangeStart", function (event, next, current) {
+        $rootScope.spinnerGrow = true
+    })
+}])
 app.controller("loginCtrl", function ($scope, $http, $rootScope) {
-    $("#frmInicioSesion").off("submit").submit(function (event) {
-        event.preventDefault();
+    $("#frmInicioSesion").submit(function (event) {
+        event.preventDefault()
 
-        pop(".div-inicio-sesion", 'Iniciando sesión, espere...', "primary");
-        disableAll();
+        pop(".div-inicio-sesion", 'ℹ️Iniciando sesi&oacute;n, espere un momento...', "primary")
 
         $.post("iniciarSesion", $(this).serialize(), function (respuesta) {
-            enableAll();
+            enableAll()
 
             if (respuesta.length) {
-                // ✅ Guardar el usuario activo correctamente
-                localStorage.setItem("login", "1");
-                localStorage.setItem("usuarioActivo", JSON.stringify(respuesta[0]));
-
-                $("#frmInicioSesion").get(0).reset();
-
-                // ✅ Redirigir a la página principal (calificaciones)
-                window.location.href = "#/calificaciones";
-                return;
+                localStorage.setItem("login", "1")
+                localStorage.setItem("preferencias", JSON.stringify(respuesta[0]))
+                $("#frmInicioSesion").get(0).reset()
+                location.reload()
+                return
             }
 
-            pop(".div-inicio-sesion", "Usuario y/o contraseña incorrectos", "danger");
-        }).fail(function () {
-            enableAll();
-            pop(".div-inicio-sesion", "Error al conectar con el servidor", "danger");
-        });
+            pop(".div-inicio-sesion", "Usuario y/o contrase&ntilde;a incorrecto(s)", "danger")
+        })
+
+        disableAll()
+    })
+})
+app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, CalificacionFactory) {
+    $scope.calificaciones = [];
+
+    CalificacionAPI.buscarCalificaciones().then(function (data) {
+        $scope.calificaciones = data.map(c =>
+            CalificacionFactory.create(c.idCalificacion, c.idAlumno, c.Calificacion, c.Categoria)
+        );
     });
 });
-
-// --- Controlador de calificaciones ---
-app.controller("calificacionesCtrl", function ($scope, $http) {
-    // --- Validar si hay usuario logueado ---
-    const usuario = JSON.parse(localStorage.getItem("usuarioActivo") || "null");
-    if (!usuario) {
-        alert("Por favor inicia sesión primero.");
-        window.location.href = "#/";
-        return;
-    }
-
-    let autoActualizar = false;
-
-    function buscarCalificaciones(texto = "") {
-        texto = texto.trim();
-        if (texto === "") {
-            $("#tbodyCalificacion").html("<tr><td colspan='3' class='text-center'>Ingresa algo para buscar</td></tr>");
-            return;
-        }
-
-        $.get("/calificaciones/buscar", { busqueda: texto }, function (data) {
-            let html = "";
-            if (data.length > 0) {
-                data.forEach(calificacion => {
-                    html += `
-                        <tr>
-                            <td>${calificacion.idCalificacion}</td>
-                            <td>${calificacion.idAlumno}</td>
-                            <td>${calificacion.Calificacion}</td>
-                        </tr>`;
-                });
-            } else {
-                html = "<tr><td colspan='3' class='text-center'>No se encontraron resultados</td></tr>";
-            }
-            $("#tbodyCalificacion").html(html);
-        });
-    }
-
-    $(document).on("click", "#btnBuscar", function () {
-        const texto = $("#Contbuscar").val();
-        buscarCalificaciones(texto);
-    });
-
-    $(document).on("keypress", "#Contbuscar", function (e) {
-        if (e.which === 13) {
-            $("#btnBuscar").click();
-        }
-    });
-
-    Pusher.logToConsole = false;
-    var pusher = new Pusher('505a9219e50795c4885e', { cluster: 'us2' });
-    var channel = pusher.subscribe('for-nature-533');
-    channel.bind('eventoApoyos', function(data) {
-        if (autoActualizar) {
-            buscarCalificaciones($("#Contbuscar").val());
-        }
-    });
-});
-
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
