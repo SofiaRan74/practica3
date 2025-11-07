@@ -8,24 +8,29 @@ from flask import Flask
 
 from flask import render_template
 from flask import request
-from flask import jsonify, make_response
+from flask import jsonify, make_response, session
 
 import mysql.connector
 
+import mysql.connector.pooling
+import pusher
 import datetime
 import pytz
 
 from flask_cors import CORS, cross_origin
 
-con = mysql.connector.connect(
+app            = Flask(__name__)
+app.secret_key = "Test12345"
+CORS(app)
+
+con_pool = mysql.connector.pooling.MySQLConnectionPool(
+    pool_name="my_pool",
+    pool_size=5,
     host="185.232.14.52",
     database="u760464709_23005116_bd",
     user="u760464709_23005116_usr",
     password="z8[T&05u"
 )
-
-app = Flask(__name__)
-CORS(app)
 
 def pusherApoyos():
     import pusher
@@ -38,9 +43,19 @@ def pusherApoyos():
       ssl=True
     )
     
-    pusher_client.trigger("for-nature-533", "eventoApoyos", {"message": "Hola Mundo!"})
+    pusher_client.trigger("for-nature-533", "eventoCalificaciones", {"message": "Hola Mundo!"})
     return make_response(jsonify({}))
-
+    
+def login(fun):
+    @wraps(fun)
+    def decorador(*args, **kwargs):
+        if not session.get("login"):
+            return jsonify({
+                "estado": "error",
+                "respuesta": "No has iniciado sesión"
+            }), 401
+        return fun(*args, **kwargs)
+    return decorador
 
 @app.route("/")
 def index():
@@ -50,6 +65,9 @@ def index():
     con.close()
 
     return render_template("index.html")
+@app.route("/login")
+def appLogin():
+    return render_template("login.html")
 
 @app.route("/app")
 def app2():
@@ -60,22 +78,16 @@ def app2():
 
     return render_template("login.html")
     # return "<h5>Hola, soy la view app</h5>"
-
 @app.route("/iniciarSesion", methods=["POST"])
-# Usar cuando solo se quiera usar CORS en rutas específicas
-# @cross_origin()
 def iniciarSesion():
-    if not con.is_connected():
-        con.reconnect()
+    usuario    = request.form["usuario"]
+    contrasena = request.form["contrasena"]
 
-    usuario    = request.form["txtUsuario"]
-    contrasena = request.form["txtContrasena"]
-
+    con    = con_pool.get_connection()
     cursor = con.cursor(dictionary=True)
     sql    = """
-    SELECT Id_Usuario
+    SELECT Id_Usuario, Nombre_Usuario, Tipo_Usuario
     FROM usuarios
-
     WHERE Nombre_Usuario = %s
     AND Contrasena = %s
     """
@@ -83,9 +95,37 @@ def iniciarSesion():
 
     cursor.execute(sql, val)
     registros = cursor.fetchall()
-    con.close()
+    if cursor:
+        cursor.close()
+    if con and con.is_connected():
+        con.close()
+
+    session["login"]      = False
+    session["login-usr"]  = None
+    session["login-tipo"] = 0
+    if registros:
+        usuario = registros[0]
+        session["login"]      = True
+        session["login-usr"]  = usuario["Nombre_Usuario"]
+        session["login-tipo"] = usuario["Tipo_Usuario"]
 
     return make_response(jsonify(registros))
+
+@app.route("/cerrarSesion", methods=["POST"])
+@login
+def cerrarSesion():
+    session["login"]      = False
+    session["login-usr"]  = None
+    session["login-tipo"] = 0
+    return make_response(jsonify({}))
+    
+@app.route("/preferencias")
+@login
+def preferencias():
+    return make_response(jsonify({
+        "usr": session.get("login-usr"),
+        "tipo": session.get("login-tipo", 2)
+    }))
 
 @app.route("/calificaciones")
 def apoyos():
@@ -124,19 +164,6 @@ def tbodyCalificacion():
     """
 
     return render_template("tbodyCalificacion.html", apoyos=registros)
-"""  
-@app.route("/mascotas")
-def listarMascotas():
-    if not con.is_connected():
-        con.reconnect()
-
-    cursor = con.cursor(dictionary=True)
-    sql = "SELECT idMascota, nombre FROM mascotas ORDER BY nombre"
-    cursor.execute(sql)
-    registros = cursor.fetchall()
-    con.close()
-
-    return make_response(jsonify(registros))
 
 @app.route("/calificaciones/buscar", methods=["GET"])
 def buscarCalificaciones():
@@ -188,6 +215,7 @@ def buscarCalificaciones():
         con.close()
 
     return make_response(jsonify(registros))
+"""
 
 @app.route("/apoyo", methods=["POST"])
 # Usar cuando solo se quiera usar CORS en rutas específicas
@@ -272,6 +300,7 @@ def eliminarApoyo():
     con.close()
 
     return make_response(jsonify({})) """
+
 
 
 
