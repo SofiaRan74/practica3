@@ -164,46 +164,55 @@ app.factory("CalificacionFactory", function () {
     };
 });
 
-app.config(function ($routeProvider, $locationProvider, $provide) {
+app.config(function ($routeProvider, $locationProvider, $provide, $interpolateProvider) {
+    $interpolateProvider.startSymbol('[[');
+    $interpolateProvider.endSymbol(']]');
+
     $provide.decorator("MensajesService", function ($delegate, $log) {
-        const originalModal = $delegate.modal
-        const originalPop   = $delegate.pop
-        const originalToast = $delegate.toast
+        const originalModal = $delegate.modal;
+        const originalPop   = $delegate.pop;
+        const originalToast = $delegate.toast;
 
         $delegate.modal = function (msg) {
             originalModal(msg, "Mensaje", [
-                {"html": "Aceptar", "class": "btn btn-lg btn-secondary", defaultButton: true, dismiss: true}
-            ])
-        }
+                {
+                    html: "Aceptar",
+                    class: "btn btn-lg btn-secondary",
+                    defaultButton: true,
+                    dismiss: true
+                }
+            ]);
+        };
+
         $delegate.pop = function (msg) {
-            $(".div-temporal").remove()
-            $("body").prepend($("<div />", {
-                class: "div-temporal"
-            }))
-            originalPop(".div-temporal", msg, "info")
-        }
+            $(".div-temporal").remove();
+            $("body").prepend($("<div />", { class: "div-temporal" }));
+            originalPop(".div-temporal", msg, "info");
+        };
+
         $delegate.toast = function (msg) {
-            originalToast(msg, 2)
-        }
+            originalToast(msg, 2);
+        };
 
-        return $delegate
-    })
+        return $delegate;
+    });
 
-    $locationProvider.hashPrefix("")
+    $locationProvider.hashPrefix("");
 
     $routeProvider
-    .when("/", {
-        templateUrl: "login",
-        controller: "loginCtrl"
-    })
-    .when("/calificaciones", {
-        templateUrl: "calificaciones",
-        controller: "CalificacionesCtrl"
-    })
-    .otherwise({
-        redirectTo: "/"
-    })
-})
+        .when("/", {
+            templateUrl: "login",
+            controller: "loginCtrl"
+        })
+        .when("/calificaciones", {
+            templateUrl: "calificaciones",
+            controller: "CalificacionesCtrl"
+        })
+        .otherwise({
+            redirectTo: "/"
+        });
+});
+
 app.run(["$rootScope", "$location", "$timeout", "SesionService", function($rootScope, $location, $timeout, SesionService) {
     $rootScope.slide             = ""
     $rootScope.spinnerGrow       = false
@@ -723,6 +732,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
