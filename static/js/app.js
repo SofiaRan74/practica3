@@ -159,7 +159,7 @@ app.factory("CalificacionFactory", function () {
 
     return {
         create: function (idCalificacion, idAlumno, Calificacion, Categoria) {
-            return new Playlist(idCalificacion, idAlumno, Calificacion, Categoria);
+            return new Calificacion(idCalificacion, idAlumno, Calificacion, Categoria);
         }
     };
 });
@@ -695,4 +695,5 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
