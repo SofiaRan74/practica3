@@ -3,7 +3,7 @@
   <div class="card-body">
     <h5 class="card-title"><i class="bi bi-trophy-fill"></i> Mejores Alumnos</h5>
     <p class="card-text">
-      Hola {{ SesionService.getUsr() }} !<br>
+      Hola {{ "{{ SesionService.getUsr() }}" }}!<br>
       En esta sección podrás visualizar el <strong>top 3 de los alumnos con mejores calificaciones</strong>.
     </p>
   </div>
@@ -20,17 +20,17 @@
         <div class="col-12 col-sm-6 col-md-4" ng-repeat="c in top3Alumnos">
           <div class="card text-bg-primary mb-3 h-100">
             <div class="card-header text-center fw-bold">
-              Puesto #{{ $index + 1 }}
+              Puesto #{{ "{{ $index + 1 }}" }}
             </div>
             <div class="card-body text-center">
               <h5 class="card-title">
-                <i class="bi bi-person-circle"></i> {{ c.idAlumno }}
+                <i class="bi bi-person-circle"></i> {{ "{{ c.idAlumno }}" }}
               </h5>
               <p class="card-text">
-                Calificación promedio: <strong>{{ c.Calificacion }}</strong>
+                Calificación promedio: <strong>{{ "{{ c.Calificacion }}" }}</strong>
               </p>
               <p class="card-text small text-light opacity-75">
-                {{ c.Categoria }}
+                {{ "{{ c.Categoria }}" }}
               </p>
             </div>
             <div class="card-footer text-center bg-transparent">
