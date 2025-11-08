@@ -1,58 +1,42 @@
-<!-- Tarjeta principal -->
-<div class="card text-bg-primary mb-3" style="max-width: 18rem;">
-  <div class="card-header">Calificaciones</div>
-  <div class="card-body">
-    <h5 class="card-title">
-      <i class="bi bi-trophy-fill"></i> Mejores Alumnos
-    </h5>
-    <p class="card-text">
-      Hola [[ SesionService.getUsr() ]]!<br>
-      En esta sección podrás visualizar el
-      <strong>top 3 de los alumnos con mejores calificaciones</strong>.
-    </p>
+<div class="container py-4" ng-controller="CalificacionesCtrl">
+  <!-- ENCABEZADO -->
+  <div class="text-center mb-4">
+    <h2 class="fw-bold text-primary">
+      <i class="bi bi-trophy-fill"></i> Mejores Calificaciones
+    </h2>
+    <p class="text-muted">Visualiza el top de alumnos con sus calificaciones más recientes.</p>
   </div>
-</div>
 
-<!-- Contenedor principal -->
-<div class="row" ng-controller="CalificacionesCtrl">
-  <div class="col-12">
-    <div class="shadow shadow-lg p-3 mb-2 bg-body rounded">
-      <h5>Top 3 de Alumnos con Mejores Calificaciones</h5>
+  <!-- SPINNER DE CARGA -->
+  <div class="text-center my-5" ng-if="!calificaciones.length">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-3 text-secondary">Cargando calificaciones...</p>
+  </div>
 
-      <div class="row">
-        <!-- Repetición dinámica de alumnos -->
-        <div
-          class="col-12 col-sm-6 col-md-4"
-          ng-repeat="c in calificaciones | orderBy:'-Calificacion' | limitTo:3"
-        >
-          <div class="card text-bg-primary mb-3 h-100">
-            <div class="card-header text-center fw-bold">
-              Puesto # [[ $index + 1 ]]
-            </div>
-            <div class="card-body text-center">
-              <h5 class="card-title">
-                <i class="bi bi-person-circle"></i> [[ c.idAlumno ]]
-              </h5>
-              <p class="card-text">
-                Calificación promedio:
-                <strong>[[ c.Calificacion ]]</strong>
-              </p>
-              <p class="card-text small text-light opacity-75">
-                [[ c.Categoria ]]
-              </p>
-            </div>
-            <div class="card-footer text-center bg-transparent">
-              <button
-                class="btn btn-sm btn-outline-light"
-                ng-click="verDetalles(c)"
-              >
-                <i class="bi bi-info-circle"></i> Ver detalles
-              </button>
-            </div>
-          </div>
+  <!-- LISTA DE CALIFICACIONES -->
+  <div class="row g-4" ng-if="calificaciones.length">
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3" ng-repeat="c in calificaciones">
+      <div class="card shadow-sm h-100 border-0">
+        <div class="card-body text-center">
+          <h5 class="card-title mb-2 text-primary">
+            <i class="bi bi-person-circle"></i> [[ c.idAlumno ]]
+          </h5>
+          <p class="card-text fs-5">
+            <strong>[[ c.Calificacion ]]</strong>
+          </p>
+          <span class="badge bg-secondary">[[ c.Categoria ]]</span>
         </div>
-        <!-- Fin ng-repeat -->
+        <div class="card-footer text-center bg-light border-0">
+          <button class="btn btn-outline-primary btn-sm" ng-click="verDetalles(c)">
+            <i class="bi bi-info-circle"></i> Ver detalles
+          </button>
+        </div>
       </div>
     </div>
+  </div>
+
+  <!-- MENSAJE SI NO HAY DATOS -->
+  <div class="alert alert-warning text-center mt-5" ng-if="calificaciones.length === 0 && !loading">
+    <i class="bi bi-exclamation-circle"></i> No hay calificaciones registradas.
   </div>
 </div>
