@@ -684,16 +684,45 @@ app.controller("loginCtrl", function ($scope, $http, $rootScope) {
     })
 })
 app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, CalificacionFactory) {
+    // Inicializamos el array de calificaciones
     $scope.calificaciones = [];
 
-    CalificacionAPI.buscarCalificaciones().then(function (data) {
-        $scope.calificaciones = data.map(c =>
-            CalificacionFactory.create(c.idCalificacion, c.idAlumno, c.Calificacion, c.Categoria)
+    // Función para cargar los datos desde la API
+    $scope.cargarCalificaciones = function() {
+        CalificacionAPI.buscarCalificaciones()
+            .then(function (data) {
+                // Convertimos los objetos planos en instancias del factory
+                $scope.calificaciones = data.map(function(c) {
+                    return CalificacionFactory.create(
+                        c.idCalificacion,
+                        c.idAlumno,
+                        c.Calificacion,
+                        c.Categoria
+                    );
+                });
+            })
+            .catch(function(error) {
+                console.error("❌ Error al obtener calificaciones:", error);
+            });
+    };
+
+    // Llamamos la función al iniciar el controlador
+    $scope.cargarCalificaciones();
+
+    // Ejemplo de función para botón "Ver detalles"
+    $scope.verDetalles = function(c) {
+        alert(
+            "Detalles del alumno:\n" +
+            "Alumno: " + c.idAlumno + "\n" +
+            "Calificación: " + c.Calificacion + "\n" +
+            "Categoría: " + c.Categoria
         );
-    });
+    };
 });
+
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
