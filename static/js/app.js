@@ -164,9 +164,7 @@ app.factory("CalificacionFactory", function () {
     };
 });
 
-app.config(function ($routeProvider, $locationProvider, $provide, $interpolateProvider) {
-    $interpolateProvider.startSymbol('[[');
-    $interpolateProvider.endSymbol(']]');
+app.config(function ($routeProvider, $locationProvider, $provide) {
 
     $provide.decorator("MensajesService", function ($delegate, $log) {
         const originalModal = $delegate.modal;
@@ -732,6 +730,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
