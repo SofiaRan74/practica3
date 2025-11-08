@@ -690,7 +690,7 @@ app.controller("loginCtrl", function ($scope, $http, $rootScope) {
         disableAll()
     })
 })
-app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, CalificacionFactory) {
+app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, CalificacionFactory, SesionService) {
     // Inicializamos el array de calificaciones
     $scope.calificaciones = [];
 
@@ -715,6 +715,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
 
     // Llamamos la función al iniciar el controlador
     $scope.cargarCalificaciones();
+    $scope.SesionService = SesionService;
 
     // Ejemplo de función para botón "Ver detalles"
     $scope.verDetalles = function(c) {
@@ -730,6 +731,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
