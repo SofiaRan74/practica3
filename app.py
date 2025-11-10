@@ -172,7 +172,7 @@ def buscarCalificaciones():
         WHERE idAlumno LIKE %s
         OR Calificacion LIKE %s
         OR Categoria LIKE %s
-        ORDER BY idCalificacion DESC
+        ORDER BY Calificacion DESC
         LIMIT 10 OFFSET 0
     """
     val = (busqueda, busqueda, busqueda)
@@ -199,4 +199,5 @@ def fechaHora():
 # ---------- EJECUCIÓN ----------
 if __name__ == "__main__":
     app.run(debug=True)
+
 
