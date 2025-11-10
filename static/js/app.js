@@ -141,11 +141,11 @@ app.factory("RecetaFacade", function(ProductoAPI, RecetaAPI, $q) {
     };
 })
 app.factory("CalificacionFactory", function () {
-    function Calificacion(idCalificacion, idAlumno, Calificacion, Categoria) {
+    function Calificacion(idCalificacion, idAlumno, valorCalificacion, categoria) {
         this.idCalificacion = idCalificacion;
         this.idAlumno = idAlumno;
-        this.Calificacion = Calificacion;
-        this.Categoria = Categoria;
+        this.Calificacion = valorCalificacion;
+        this.Categoria = categoria;
     }
 
     Calificacion.prototype.getInfo = function () {
@@ -158,11 +158,12 @@ app.factory("CalificacionFactory", function () {
     };
 
     return {
-        create: function (idCalificacion, idAlumno, Calificacion, Categoria) {
-            return new Calificacion(idCalificacion, idAlumno, Calificacion, Categoria);
+        create: function (idCalificacion, idAlumno, valorCalificacion, categoria) {
+            return new Calificacion(idCalificacion, idAlumno, valorCalificacion, categoria);
         }
     };
 });
+
 
 app.config(function ($routeProvider, $locationProvider, $provide) {
 
@@ -731,6 +732,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
