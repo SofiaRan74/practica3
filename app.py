@@ -163,20 +163,21 @@ def buscarCalificaciones():
     busqueda = f"%{busqueda}%"
 
     sql = """
-        SELECT c.idCalificacion,
-               c.idAlumno,
-               a.Nombre AS NombreAlumno,
-               c.Calificacion,
-               c.Categoria
+        SELECT 
+            c.idCalificacion,
+            c.idAlumno,
+            a.Nombre AS NombreAlumno,
+            c.Calificacion,
+            c.Categoria
         FROM calificaciones AS c
         INNER JOIN alumnos AS a ON c.idAlumno = a.idAlumno
         WHERE a.Nombre LIKE %s
-        OR c.Calificacion LIKE %s
-        OR c.Categoria LIKE %s
-        ORDER BY c.idCalificacion DESC
+           OR c.Calificacion LIKE %s
+           OR c.Categoria LIKE %s
+        ORDER BY c.Calificacion DESC
         LIMIT 10 OFFSET 0
     """
-    val = (busqueda, busqueda, busqueda, busqueda)
+    val = (busqueda, busqueda, busqueda)
 
     try:
         cursor.execute(sql, val)
@@ -201,4 +202,5 @@ def fechaHora():
 # ---------- EJECUCIÓN ----------
 if __name__ == "__main__":
     app.run(debug=True)
+
 
