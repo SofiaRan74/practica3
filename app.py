@@ -153,42 +153,39 @@ def tbodyCalificacion():
     return render_template("tbodyCalificacion.html", apoyos=registros)
 
 
-@app.route("/calificaciones/buscar", methods=["GET"])
+@app.route("/calificaciones/buscar", methods=["GET"]) 
 def buscarCalificaciones():
-    db = DatabaseConnection().get_connection()
-    cursor = db.cursor(dictionary=True)
-
-    args = request.args
-    busqueda = args.get("busqueda", "")
-    busqueda = f"%{busqueda}%"
-
-    sql = """
-        SELECT 
-            c.idCalificacion,
-            c.idAlumno,
-            a.Nombre AS NombreAlumno,
-            c.Calificacion,
-            c.Categoria
-        FROM calificaciones AS c
-        INNER JOIN alumnos AS a ON c.idAlumno = a.idAlumno
-        WHERE a.Nombre LIKE %s
-           OR c.Calificacion LIKE %s
-           OR c.Categoria LIKE %s
-        ORDER BY c.Calificacion DESC
-        LIMIT 10 OFFSET 0
-    """
-    val = (busqueda, busqueda, busqueda)
-
-    try:
-        cursor.execute(sql, val)
-        registros = cursor.fetchall()
-    except mysql.connector.errors.ProgrammingError as error:
-        print(f"Ocurrió un error de programación en MySQL: {error}")
-        registros = []
-    finally:
-        cursor.close()
-
-    return make_response(jsonify(registros))
+    con = con_pool.get_connection() 
+    cursor = con.cursor(dictionary=True) 
+    
+    args = request.args 
+    busqueda = args.get("busqueda", "") 
+    busqueda = f"%{busqueda}%" 
+    sql = """ 
+    SELECT idCalificacion, 
+           idAlumno, 
+           Calificacion, 
+           Categoria 
+        FROM calificaciones 
+        WHERE idAlumno LIKE %s 
+        OR Calificacion LIKE %s 
+        OR Categoria LIKE %s 
+        ORDER BY idCalificacion DESC 
+        LIMIT 10 OFFSET 0 
+    """ 
+    val = (busqueda, busqueda, busqueda) 
+    try: 
+        cursor.execute(sql, val) 
+        registros = cursor.fetchall() 
+    except mysql.connector.errors.ProgrammingError as 
+    error: 
+        print(f"Ocurrió un error de programación en 
+        MySQL: {error}") 
+        registros = [] 
+    finally: 
+        cursor.close() 
+        con.close() 
+        return make_response(jsonify(registros))
 
 
 
@@ -202,5 +199,6 @@ def fechaHora():
 # ---------- EJECUCIÓN ----------
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
