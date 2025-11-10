@@ -708,6 +708,9 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
                         c.Categoria
                     );
                 });
+                $scope.calificaciones.sort(function(a, b) {
+                    return b.Calificacion - a.Calificacion;
+                });
             })
             .catch(function(error) {
                 console.error("❌ Error al obtener calificaciones:", error);
@@ -732,6 +735,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
