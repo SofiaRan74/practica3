@@ -163,18 +163,20 @@ def buscarCalificaciones():
     busqueda = f"%{busqueda}%"
 
     sql = """
-        SELECT idCalificacion,
-               idAlumno,
-               Calificacion,
-               Categoria
-        FROM calificaciones
-        WHERE idAlumno LIKE %s
-        OR Calificacion LIKE %s
-        OR Categoria LIKE %s
-        ORDER BY idCalificacion DESC
+        SELECT c.idCalificacion,
+               c.idAlumno,
+               a.Nombre AS NombreAlumno,
+               c.Calificacion,
+               c.Categoria
+        FROM calificaciones AS c
+        INNER JOIN alumnos AS a ON c.idAlumno = a.idAlumno
+        WHERE a.Nombre LIKE %s
+        OR c.Calificacion LIKE %s
+        OR c.Categoria LIKE %s
+        ORDER BY c.idCalificacion DESC
         LIMIT 10 OFFSET 0
     """
-    val = (busqueda, busqueda, busqueda)
+    val = (busqueda, busqueda, busqueda, busqueda)
 
     try:
         cursor.execute(sql, val)
@@ -188,6 +190,7 @@ def buscarCalificaciones():
     return make_response(jsonify(registros))
 
 
+
 @app.route("/fechaHora")
 def fechaHora():
     zona = pytz.timezone("America/Mexico_City")
@@ -198,3 +201,4 @@ def fechaHora():
 # ---------- EJECUCIÓN ----------
 if __name__ == "__main__":
     app.run(debug=True)
+
