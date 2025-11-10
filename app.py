@@ -164,10 +164,11 @@ def buscarCalificaciones():
 
     sql = """
         SELECT idCalificacion,
-               idAlumno,
+               NombreCompleto,
                Calificacion,
                Categoria
         FROM calificaciones
+        INNER JOIN alumnos USING(idAlumno)
         WHERE idAlumno LIKE %s
         OR Calificacion LIKE %s
         OR Categoria LIKE %s
@@ -198,3 +199,4 @@ def fechaHora():
 # ---------- EJECUCIÓN ----------
 if __name__ == "__main__":
     app.run(debug=True)
+
