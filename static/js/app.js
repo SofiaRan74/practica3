@@ -694,7 +694,6 @@ app.controller("loginCtrl", function ($scope, $http, $rootScope) {
 app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, CalificacionFactory, SesionService) {
     // Inicializamos el array de calificaciones
     $scope.calificaciones = [];
-
     // Función para cargar los datos desde la API
     $scope.cargarCalificaciones = function() {
         CalificacionAPI.buscarCalificaciones()
@@ -708,9 +707,20 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
                         c.Categoria
                     );
                 });
+
+                // ✅ Ordenar descendente por Calificacion
                 $scope.calificaciones.sort(function(a, b) {
                     return b.Calificacion - a.Calificacion;
                 });
+
+                // ✅ Verificar si el puesto 1 tiene calificación 100
+                if ($scope.calificaciones.length > 0) {
+                    if ($scope.calificaciones[0].Calificacion == 100) {
+                        console.log("✅ El puesto 1 tiene calificación 100");
+                    } else {
+                        console.warn("⚠️ El puesto 1 NO tiene calificación 100. Tiene:", $scope.calificaciones[0].Calificacion);
+                    }
+                }
             })
             .catch(function(error) {
                 console.error("❌ Error al obtener calificaciones:", error);
@@ -720,6 +730,8 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
     // Llamamos la función al iniciar el controlador
     $scope.cargarCalificaciones();
     $scope.SesionService = SesionService;
+});
+
 
     // Ejemplo de función para botón "Ver detalles"
     $scope.verDetalles = function(c) {
@@ -735,6 +747,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
