@@ -1,25 +1,44 @@
 from flask import Flask, render_template, request, jsonify, make_response, session
 import mysql.connector
-import mysql.connector.pooling
 import pusher
 import datetime
 import pytz
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from functools import wraps  # 👈 Necesario para el decorador
 
 app = Flask(__name__)
 app.secret_key = "Test12345"
 CORS(app)
 
-# ---------- CONEXIÓN A BASE DE DATOS ----------
-con_pool = mysql.connector.pooling.MySQLConnectionPool(
-    pool_name="my_pool",
-    pool_size=5,
-    host="185.232.14.52",
-    database="u760464709_23005116_bd",
-    user="u760464709_23005116_usr",
-    password="z8[T&05u"
-)
+# ---------- CONEXIÓN A BASE DE DATOS (Singleton) ----------
+class DatabaseConnection:
+    _instance = None
+    _connection = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(DatabaseConnection, cls).__new__(cls)
+            cls._instance._connect()
+        return cls._instance
+
+    def _connect(self):
+        try:
+            self._connection = mysql.connector.connect(
+                host="185.232.14.52",
+                database="u760464709_23005116_bd",
+                user="u760464709_23005116_usr",
+                password="z8[T&05u"
+            )
+            print("✅ Conexión Singleton MySQL establecida")
+        except mysql.connector.Error as err:
+            print(f"❌ Error al conectar con MySQL: {err}")
+
+    def get_connection(self):
+        # Si la conexión se cerró, vuelve a abrirla
+        if not self._connection.is_connected():
+            self._connect()
+        return self._connection
+
 
 # ---------- PUSHER ----------
 def pusherApoyos():
@@ -34,6 +53,7 @@ def pusherApoyos():
     pusher_client.trigger("for-nature-533", "eventoCalificaciones", {"message": "Hola Mundo!"})
     return make_response(jsonify({}))
 
+
 # ---------- DECORADOR DE LOGIN ----------
 def requiere_login(fun):
     @wraps(fun)
@@ -42,6 +62,7 @@ def requiere_login(fun):
             return jsonify({"error": "No has iniciado sesión"}), 401
         return fun(*args, **kwargs)
     return decorador
+
 
 # ---------- RUTAS ----------
 @app.route("/")
@@ -59,8 +80,8 @@ def iniciarSesion():
     usuario = request.form["usuario"]
     contrasena = request.form["contrasena"]
 
-    con = con_pool.get_connection()
-    cursor = con.cursor(dictionary=True)
+    db = DatabaseConnection().get_connection()
+    cursor = db.cursor(dictionary=True)
     sql = """
         SELECT Id_Usuario, Nombre_Usuario, Tipo_Usuario
         FROM usuarios
@@ -73,7 +94,6 @@ def iniciarSesion():
     registros = cursor.fetchall()
 
     cursor.close()
-    con.close()
 
     session["login"] = False
     session["login-usr"] = None
@@ -113,8 +133,8 @@ def calificaciones():
 
 @app.route("/tbodyCalificacion")
 def tbodyCalificacion():
-    con = con_pool.get_connection()
-    cursor = con.cursor(dictionary=True)
+    db = DatabaseConnection().get_connection()
+    cursor = db.cursor(dictionary=True)
     sql = """
         SELECT idCalificacion,
                idAlumno,
@@ -129,15 +149,14 @@ def tbodyCalificacion():
     registros = cursor.fetchall()
 
     cursor.close()
-    con.close()
 
     return render_template("tbodyCalificacion.html", apoyos=registros)
 
 
 @app.route("/calificaciones/buscar", methods=["GET"])
 def buscarCalificaciones():
-    con = con_pool.get_connection()
-    cursor = con.cursor(dictionary=True)
+    db = DatabaseConnection().get_connection()
+    cursor = db.cursor(dictionary=True)
 
     args = request.args
     busqueda = args.get("busqueda", "")
@@ -165,7 +184,6 @@ def buscarCalificaciones():
         registros = []
     finally:
         cursor.close()
-        con.close()
 
     return make_response(jsonify(registros))
 
