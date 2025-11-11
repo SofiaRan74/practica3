@@ -703,7 +703,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
                 $scope.calificaciones = data.map(function(c) {
                     return CalificacionFactory.create(
                         c.idCalificacion,
-                        c.idAlumno,
+                        c.NombreCompleto,
                         c.Calificacion,
                         c.Categoria
                     );
@@ -735,6 +735,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
