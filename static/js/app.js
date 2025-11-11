@@ -141,9 +141,9 @@ app.factory("RecetaFacade", function(ProductoAPI, RecetaAPI, $q) {
     };
 })
 app.factory("CalificacionFactory", function () {
-    function Calificacion(idCalificacion, idAlumno, valorCalificacion, categoria) {
+    function Calificacion(idCalificacion, nombrecompleto, valorCalificacion, categoria) {
         this.idCalificacion = idCalificacion;
-        this.idAlumno = idAlumno;
+        this.NombreCompleto = nombrecompleto;
         this.Calificacion = valorCalificacion;
         this.Categoria = categoria;
     }
@@ -151,15 +151,15 @@ app.factory("CalificacionFactory", function () {
     Calificacion.prototype.getInfo = function () {
         return {
             idCalificacion: this.idCalificacion,
-            idAlumno: this.idAlumno,
+            NombreCompleto: this.NombreCompleto,
             Calificacion: this.Calificacion,
             Categoria: this.Categoria
         };
     };
 
     return {
-        create: function (idCalificacion, idAlumno, valorCalificacion, categoria) {
-            return new Calificacion(idCalificacion, idAlumno, valorCalificacion, categoria);
+        create: function (idCalificacion, nombrecompleto, valorCalificacion, categoria) {
+            return new Calificacion(idCalificacion, nombrecompleto, valorCalificacion, categoria);
         }
     };
 });
@@ -735,6 +735,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
