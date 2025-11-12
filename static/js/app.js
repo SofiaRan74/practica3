@@ -126,11 +126,7 @@ app.factory("CalificacionFactory", function () {
     };
 });
 app.factory("CalificacionDecorator", function () {
-    function decorate(calificacion, extraData) {
-        // Añadir campos adicionales o calculados
-        calificacion.fecha = extraData?.fecha || new Date().toISOString();
-        calificacion.comentario = extraData?.comentario || "Sin comentarios";
-
+    function decorate(calificacion) {
         // Método para saber si es excelente
         calificacion.esExcelente = function () {
             return this.Calificacion >= 90;
@@ -143,8 +139,6 @@ app.factory("CalificacionDecorator", function () {
                 NombreCompleto: this.NombreCompleto,
                 Calificacion: this.Calificacion,
                 Categoria: this.Categoria,
-                fecha: this.fecha,
-                comentario: this.comentario,
                 esExcelente: this.esExcelente()
             };
         };
@@ -769,9 +763,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionFacade, Sesio
                 <strong>Alumno:</strong> ${info.NombreCompleto}<br>
                 <strong>Categoría:</strong> ${info.Categoria}<br>
                 <strong>Calificación:</strong> ${info.Calificacion}<br>
-                <strong>Fecha:</strong> ${new Date(info.fecha).toLocaleDateString()}<br>
                 <strong>Excelente:</strong> ${info.esExcelente ? "✅ Sí" : "❌ No"}<br>
-                <em>${info.comentario}</em>
             </div>
         `);
     };
@@ -787,6 +779,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionFacade, Sesio
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
