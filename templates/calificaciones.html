@@ -1,13 +1,14 @@
 <!-- Tarjeta principal -->
-<div class="card border-0 shadow-sm mb-4 bg-gradient text-white" style="background: linear-gradient(135deg, #0d6efd, #6610f2);">
-  <div class="card-body text-center">
-    <h4 class="card-title mb-3">
-      <i class="bi bi-trophy-fill fs-3 text-warning"></i><br>
-      Mejores Alumnos
-    </h4>
-    <p class="card-text fs-6">
-      Hola <strong>{{ SesionService.getUsr() }}</strong>!<br>
-      Aquí puedes ver el <strong>Top 3</strong> de los alumnos con las calificaciones más altas.
+<div class="card text-bg-primary mb-3" style="max-width: 18rem;">
+  <div class="card-header">Calificaciones</div>
+  <div class="card-body">
+    <h5 class="card-title">
+      <i class="bi bi-trophy-fill"></i> Mejores Alumnos
+    </h5>
+    <p class="card-text">
+      Hola {{ '{{ SesionService.getUsr() }}' }} !<br>
+      En esta sección podrás visualizar el
+      <strong>top 3 de los alumnos con mejores calificaciones</strong>.
     </p>
   </div>
 </div>
@@ -15,54 +16,34 @@
 <!-- Contenedor principal -->
 <div class="row" ng-controller="CalificacionesCtrl">
   <div class="col-12">
-    <div class="shadow p-4 mb-4 bg-body rounded">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">
-          <i class="bi bi-stars text-warning"></i>
-          Top 3 de Alumnos con Mejores Calificaciones
-        </h5>
-        <button class="btn btn-outline-primary btn-sm" ng-click="cargarCalificaciones()">
-          <i class="bi bi-arrow-repeat"></i> Actualizar
-        </button>
-      </div>
+    <div class="shadow shadow-lg p-3 mb-2 bg-body rounded">
+      <h5>Top 3 de Alumnos con Mejores Calificaciones</h5>
 
-      <div class="row g-3">
+      <div class="row">
         <!-- Repetición dinámica de alumnos -->
         <div
           class="col-12 col-sm-6 col-md-4"
           ng-repeat="c in calificaciones | orderBy:'-Calificacion' | limitTo:3"
         >
-          <div class="card h-100 border-0 shadow-sm position-relative overflow-hidden">
-            
-            <!-- Cinta de posición -->
-            <div class="position-absolute top-0 start-0 bg-primary text-white fw-bold px-3 py-1 rounded-end">
-              #{{ $index + 1 }}
+          <div class="card text-bg-primary mb-3 h-100">
+            <div class="card-header text-center fw-bold">
+              Puesto # {{ '{{ $index + 1 }}' }}
             </div>
-
             <div class="card-body text-center">
-              <div class="mb-2">
-                <i class="bi bi-person-circle text-primary fs-1"></i>
-              </div>
-
-              <h5 class="card-title mb-1 fw-bold text-dark">
-                {{ c.NombreCompleto }}
+              <h5 class="card-title">
+                <i class="bi bi-person-circle"></i> {{ '{{ c.NombreCompleto }}' }}
               </h5>
-
-              <p class="text-secondary mb-1 small">{{ c.Categoria }}</p>
-
-              <div class="mt-2 mb-3">
-                <span class="badge rounded-pill"
-                      ng-class="{
-                        'bg-success': c.Calificacion >= 90,
-                        'bg-warning text-dark': c.Calificacion >= 75 && c.Calificacion < 90,
-                        'bg-danger': c.Calificacion < 75
-                      }">
-                  ⭐ {{ c.Calificacion }} puntos
-                </span>
-              </div>
-            <div class="card-footer text-center bg-light border-top-0">
+              <p class="card-text">
+                Calificación promedio:
+                <strong>{{ '{{ c.Calificacion }}' }}</strong>
+              </p>
+              <p class="card-text small text-light opacity-75">
+                {{ '{{ c.Categoria }}' }}
+              </p>
+            </div>
+            <div class="card-footer text-center bg-transparent">
               <button
-                class="btn btn-outline-primary btn-sm px-3"
+                class="btn btn-sm btn-outline-light"
                 ng-click="verDetalles(c)"
               >
                 <i class="bi bi-info-circle"></i> Ver detalles
@@ -75,4 +56,3 @@
     </div>
   </div>
 </div>
-
