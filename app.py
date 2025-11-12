@@ -5,6 +5,7 @@ import datetime
 import pytz
 from flask_cors import CORS
 from functools import wraps 
+from flask import send_from_directory
 
 app = Flask(__name__)
 app.secret_key = "Test12345"
@@ -199,6 +200,7 @@ def fechaHora():
 # ---------- EJECUCIÓN ----------
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
