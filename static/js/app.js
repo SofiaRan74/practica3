@@ -742,12 +742,21 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
             })
             .finally(() => $scope.cargando = false);
     };
+     $scope.verDetalles = function(c) {
+        alert(
+            "Detalles del alumno:\n" +
+            "Alumno: " + c.idAlumno + "\n" +
+            "Calificación: " + c.Calificacion + "\n" +
+            "Categoría: " + c.Categoria
+        );
+    };
 });
 
 
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
