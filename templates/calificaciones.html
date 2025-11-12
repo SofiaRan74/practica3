@@ -6,7 +6,7 @@
       Mejores Alumnos
     </h4>
     <p class="card-text fs-6">
-      👋 Hola <strong>{{ SesionService.getUsr() }}</strong>!<br>
+      Hola <strong>{{ SesionService.getUsr() }}</strong>!<br>
       Aquí puedes ver el <strong>Top 3</strong> de los alumnos con las calificaciones más altas.
     </p>
   </div>
@@ -60,12 +60,6 @@
                   ⭐ {{ c.Calificacion }} puntos
                 </span>
               </div>
-
-              <p class="text-muted small fst-italic" ng-if="c.comentario && c.comentario !== 'Sin comentarios'">
-                “{{ c.comentario }}”
-              </p>
-            </div>
-
             <div class="card-footer text-center bg-light border-top-0">
               <button
                 class="btn btn-outline-primary btn-sm px-3"
@@ -81,3 +75,4 @@
     </div>
   </div>
 </div>
+
