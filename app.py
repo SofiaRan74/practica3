@@ -129,7 +129,7 @@ def preferencias():
 
 @app.route("/calificaciones")
 def calificaciones():
-    return render_template("calificaciones.html")
+    return send_from_directory("templates", "calificaciones.html")
 
 
 @app.route("/tbodyCalificacion")
@@ -200,6 +200,7 @@ def fechaHora():
 # ---------- EJECUCIÓN ----------
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
