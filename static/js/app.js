@@ -93,12 +93,16 @@ app.service("MensajesService", function () {
 })
 
 app.factory("CalificacionAPI", function ($q) {
-        this.buscarCalificaciones = function () {
+    return {
+        buscarCalificaciones: function () {
             const deferred = $q.defer();
-            $.get("/calificaciones/buscar")
+
+            $.get("calificaciones/buscar") 
                 .done(data => deferred.resolve(data))
                 .fail(err => deferred.reject(err));
-        return deferred.promise;
+
+            return deferred.promise;
+        }
     };
 });
 app.factory("CalificacionFactory", function () {
@@ -744,6 +748,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
