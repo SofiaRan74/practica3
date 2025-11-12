@@ -131,30 +131,21 @@ app.factory("CalificacionFactory", function () {
     };
 });
 app.factory("CalificacionDecorator", function () {
-    function decorate(calificacion) {
-        // Propiedad nueva: rango según la calificación
-        if (calificacion.Calificacion >= 90) {
-            calificacion.rango = "Excelente 🏅";
-            calificacion.color = "success";
-        } else if (calificacion.Calificacion >= 75) {
-            calificacion.rango = "Bueno 👍";
-            calificacion.color = "primary";
-        } else if (calificacion.Calificacion >= 60) {
-            calificacion.rango = "Regular ⚙️";
-            calificacion.color = "warning";
-        } else {
-            calificacion.rango = "Insuficiente ❌";
-            calificacion.color = "danger";
-        }
+    function decorate(calificacion, extraData) {
+        calificacion.rango = extraData.rango || "Sin rango";
 
-        // Nuevo método para obtener detalle
-        calificacion.getDetalle = function () {
+        calificacion.esExcelente = function () {
+            return this.Calificacion >= 90;
+        };
+
+        calificacion.getInfoCompleta = function () {
             return {
                 idCalificacion: this.idCalificacion,
                 NombreCompleto: this.NombreCompleto,
                 Calificacion: this.Calificacion,
                 Categoria: this.Categoria,
-                Rango: this.rango
+                rango: this.rango,
+                esExcelente: this.esExcelente()
             };
         };
 
@@ -166,23 +157,41 @@ app.factory("CalificacionDecorator", function () {
     };
 });
 
-app.factory("CalificacionesFacade", function (CalificacionAPI, $q) {
+app.factory("CalificacionesFacade", function (CalificacionAPI, CalificacionFactory, CalificacionDecorator, $q) {
     return {
         obtenerTop3: function () {
             const deferred = $q.defer();
+
             CalificacionAPI.buscarCalificaciones()
                 .then(function (data) {
-                    // Ordenar y devolver top 3
-                    const top3 = data.sort((a, b) => b.Calificacion - a.Calificacion).slice(0, 3);
+                    const decoradas = data.map(c => {
+                        const rango = c.Calificacion >= 90
+                            ? "Excelente"
+                            : c.Calificacion >= 75
+                                ? "Bueno"
+                                : "Regular";
+
+                        let calificacion = CalificacionFactory.create(
+                            c.idCalificacion,
+                            c.NombreCompleto,
+                            c.Calificacion,
+                            c.Categoria
+                        );
+
+                        return CalificacionDecorator.decorate(calificacion, { rango });
+                    });
+
+                    // Top 3 mejores calificaciones
+                    const top3 = decoradas.sort((a, b) => b.Calificacion - a.Calificacion).slice(0, 3);
                     deferred.resolve(top3);
                 })
-                .catch(function (error) {
-                    deferred.reject(error);
-                });
+                .catch(error => deferred.reject(error));
+
             return deferred.promise;
         }
     };
 });
+
 
 
 app.config(function ($routeProvider, $locationProvider, $provide) {
@@ -711,45 +720,35 @@ app.controller("loginCtrl", function ($scope, $http, $rootScope) {
         disableAll()
     })
 })
-app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, CalificacionFactory, CalificacionDecorator) {
-
+app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, SesionService) {
+    $scope.SesionService = SesionService;
     $scope.calificaciones = [];
+    $scope.cargando = true;
 
-    $scope.cargarCalificaciones = function () {
+    CalificacionesFacade.obtenerTop3()
+        .then(function (data) {
+            $scope.calificaciones = data;
+        })
+        .catch(function (error) {
+            console.error("Error al obtener calificaciones:", error);
+        })
+        .finally(function () {
+            $scope.cargando = false;
+        });
+
+    $scope.recargar = function () {
+        $scope.cargando = true;
         CalificacionesFacade.obtenerTop3()
             .then(function (data) {
-                // Crear y decorar cada calificación
-                $scope.calificaciones = data.map(function (c) {
-                    let base = CalificacionFactory.create(
-                        c.idCalificacion,
-                        c.NombreCompleto,
-                        c.Calificacion,
-                        c.Categoria
-                    );
-                    return CalificacionDecorator.decorate(base);
-                });
+                $scope.calificaciones = data;
             })
-            .catch(function (error) {
-                console.error("❌ Error al obtener calificaciones:", error);
-            });
-    };
-
-    // Cargar automáticamente al iniciar
-    $scope.cargarCalificaciones();
-
-    $scope.verDetalles = function (c) {
-        const detalle = c.getDetalle();
-        alert(
-            "Detalles del alumno:\n" +
-            "Nombre: " + detalle.NombreCompleto + "\n" +
-            "Calificación: " + detalle.Calificacion + "\n" +
-            "Categoría: " + detalle.Categoria + "\n" +
-            "Rango: " + detalle.Rango
-        );
+            .finally(() => $scope.cargando = false);
     };
 });
+
 
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
