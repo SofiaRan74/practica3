@@ -1,39 +1,77 @@
-<!DOCTYPE html>
-<html lang="es" ng-app="CalificacionesApp">
-<head>
-    <meta charset="UTF-8">
-    <title>Calificaciones</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
-</head>
-<body class="bg-light" ng-controller="CalificacionesCtrl">
-    <div class="container py-5">
-        <h2 class="text-center mb-4 text-primary fw-bold">
-            🏫 Calificaciones (Top 3 Mejores)
-        </h2>
+<!-- Tarjeta principal -->
+<div class="card text-bg-primary mb-3" style="max-width: 18rem;">
+  <div class="card-header">Calificaciones</div>
+  <div class="card-body">
+    <h5 class="card-title">
+      <i class="bi bi-trophy-fill"></i> Mejores Alumnos
+    </h5>
+    <p class="card-text">
+      Hola {{ SesionService.getUsr() }}! <br>
+      En esta sección podrás visualizar el
+      <strong>top 3 de los alumnos con mejores calificaciones</strong>.
+    </p>
+  </div>
+</div>
 
-        <div class="row justify-content-center">
-            <div class="col-md-4 mb-4" ng-repeat="c in calificaciones">
-                <div class="card shadow border-{{c.color}}">
-                    <div class="card-header bg-{{c.color}} text-white">
-                        <h5 class="mb-0">{{ c.NombreCompleto }}</h5>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Calificación:</strong> {{ c.Calificacion }}</p>
-                        <p><strong>Categoría:</strong> {{ c.Categoria }}</p>
-                        <p><strong>Rango:</strong> <span class="fw-bold">{{ c.rango }}</span></p>
-                        <button class="btn btn-outline-{{c.color}} w-100" ng-click="verDetalles(c)">
-                            Ver detalles
-                        </button>
-                    </div>
-                </div>
+<!-- Contenedor principal -->
+<div class="row" ng-controller="CalificacionesCtrl">
+  <div class="col-12">
+    <div class="shadow shadow-lg p-3 mb-2 bg-body rounded">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5>Top 3 de Alumnos con Mejores Calificaciones</h5>
+        <button class="btn btn-success btn-sm" ng-click="cargarCalificaciones()">
+          <i class="bi bi-arrow-clockwise"></i> Recargar
+        </button>
+      </div>
+
+      <div class="row mt-3">
+        <!-- Repetición dinámica de alumnos -->
+        <div
+          class="col-12 col-sm-6 col-md-4"
+          ng-repeat="c in calificaciones | orderBy:'-Calificacion' | limitTo:3"
+        >
+          <div class="card text-bg-primary mb-3 h-100">
+            <div class="card-header text-center fw-bold">
+              Puesto # {{ $index + 1 }}
             </div>
-        </div>
+            <div class="card-body text-center">
+              <h5 class="card-title">
+                <i class="bi bi-person-circle"></i> {{ c.NombreCompleto }}
+              </h5>
+              <p class="card-text">
+                Calificación promedio:
+                <strong>{{ c.Calificacion }}</strong>
+              </p>
+              <p class="card-text small text-light opacity-75">
+                {{ c.Categoria }}
+              </p>
 
-        <div class="text-center mt-4">
-            <button class="btn btn-primary" ng-click="cargarCalificaciones()">🔄 Recargar</button>
+              <!-- Nuevo campo: rango decorado -->
+              <p class="card-text">
+                <span class="badge px-3 py-2"
+                      ng-class="{
+                        'bg-success': c.rango.includes('Excelente'),
+                        'bg-primary': c.rango.includes('Bueno'),
+                        'bg-warning text-dark': c.rango.includes('Regular'),
+                        'bg-danger': c.rango.includes('Insuficiente')
+                      }">
+                  {{ c.rango }}
+                </span>
+              </p>
+            </div>
+
+            <div class="card-footer text-center bg-transparent">
+              <button
+                class="btn btn-sm btn-outline-light"
+                ng-click="verDetalles(c)"
+              >
+                <i class="bi bi-info-circle"></i> Ver detalles
+              </button>
+            </div>
+          </div>
         </div>
+        <!-- Fin ng-repeat -->
+      </div>
     </div>
-</body>
-</html>
+  </div>
+</div>
