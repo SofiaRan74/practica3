@@ -195,11 +195,29 @@ def fechaHora():
     zona = pytz.timezone("America/Mexico_City")
     ahora = datetime.datetime.now(zona)
     return ahora.strftime("%Y-%m-%d %H:%M:%S")
+    
+@app.route("/log", methods=["GET"])
+def logProductos():
+    args         = request.args
+    actividad    = args["actividad"]
+    descripcion  = args["descripcion"]
+    tz           = pytz.timezone("America/Matamoros")
+    ahora        = datetime.datetime.now(tz)
+    fechaHoraStr = ahora.strftime("%Y-%m-%d %H:%M:%S")
+
+    with open("log-busquedas.txt", "a") as f:
+        f.write(f"{actividad}\t{descripcion}\t{fechaHoraStr}\n")
+
+    with open("log-busquedas.txt") as f:
+        log = f.read()
+
+    return log
 
 
 # ---------- EJECUCIÓN ----------
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
