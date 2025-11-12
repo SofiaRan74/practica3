@@ -733,6 +733,14 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
         .finally(function () {
             $scope.cargando = false;
         });
+    $scope.$watch("top1", function (newVal, oldVal) {
+        if (newVal > oldVal){
+            $.get("log", {
+                actividad: "Subida de Top.",
+                descripción: `"${newVal}" acaba de superar el Top uno`
+            })
+        }
+    })
 
     $scope.recargar = function () {
         $scope.cargando = true;
@@ -756,6 +764,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
