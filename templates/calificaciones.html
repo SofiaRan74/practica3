@@ -1,77 +1,91 @@
-<!-- Tarjeta principal -->
-<div class="card text-bg-primary mb-3" style="max-width: 18rem;">
-  <div class="card-header">Calificaciones</div>
+<!-- ========================================= -->
+<!-- 🌟 Tarjeta principal -->
+<div class="card shadow-lg border-0 mb-4 text-white"
+     style="background: linear-gradient(135deg, #007bff, #6610f2); border-radius: 1rem;">
   <div class="card-body">
-    <h5 class="card-title">
-      <i class="bi bi-trophy-fill"></i> Mejores Alumnos
-    </h5>
-    <p class="card-text">
-      Hola {{ SesionService.getUsr() }}! <br>
-      En esta sección podrás visualizar el
-      <strong>top 3 de los alumnos con mejores calificaciones</strong>.
-    </p>
+    <div class="d-flex align-items-center">
+      <i class="bi bi-trophy-fill fs-2 me-3 text-warning"></i>
+      <div>
+        <h4 class="fw-bold mb-1">Mejores Alumnos</h4>
+        <p class="mb-0 opacity-75">
+          ¡Hola <strong>{{ SesionService.getUsr() }}</strong>! <br>
+          Aquí puedes visualizar el <strong>Top 3</strong> de los estudiantes con las
+          <strong>mejores calificaciones</strong>.
+        </p>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Contenedor principal -->
+<!-- ========================================= -->
+<!-- 🧮 Contenedor principal -->
 <div class="row" ng-controller="CalificacionesCtrl">
   <div class="col-12">
-    <div class="shadow shadow-lg p-3 mb-2 bg-body rounded">
-      <div class="d-flex justify-content-between align-items-center">
-        <h5>Top 3 de Alumnos con Mejores Calificaciones</h5>
-        <button class="btn btn-success btn-sm" ng-click="cargarCalificaciones()">
+    <div class="p-4 bg-light rounded-4 shadow-sm">
+
+      <!-- Título + Botón de recarga -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold text-primary">
+          <i class="bi bi-star-fill text-warning me-2"></i>
+          Top 3 de Alumnos con Mejores Calificaciones
+        </h5>
+        <button class="btn btn-outline-primary btn-sm fw-semibold"
+                ng-click="recargar()">
           <i class="bi bi-arrow-clockwise"></i> Recargar
         </button>
       </div>
 
-      <div class="row mt-3">
-        <!-- Repetición dinámica de alumnos -->
-        <div
-          class="col-12 col-sm-6 col-md-4"
-          ng-repeat="c in calificaciones | orderBy:'-Calificacion' | limitTo:3"
-        >
-          <div class="card text-bg-primary mb-3 h-100">
-            <div class="card-header text-center fw-bold">
-              Puesto # {{ $index + 1 }}
-            </div>
-            <div class="card-body text-center">
-              <h5 class="card-title">
-                <i class="bi bi-person-circle"></i> {{ c.NombreCompleto }}
-              </h5>
-              <p class="card-text">
-                Calificación promedio:
-                <strong>{{ c.Calificacion }}</strong>
-              </p>
-              <p class="card-text small text-light opacity-75">
-                {{ c.Categoria }}
-              </p>
+      <!-- Animación de carga -->
+      <div ng-if="cargando" class="text-center my-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2 text-muted">Cargando calificaciones...</p>
+      </div>
 
-              <!-- Nuevo campo: rango decorado -->
-              <p class="card-text">
-                <span class="badge px-3 py-2"
-                      ng-class="{
-                        'bg-success': c.rango.includes('Excelente'),
-                        'bg-primary': c.rango.includes('Bueno'),
-                        'bg-warning text-dark': c.rango.includes('Regular'),
-                        'bg-danger': c.rango.includes('Insuficiente')
-                      }">
-                  {{ c.rango }}
-                </span>
-              </p>
+      <!-- Tarjetas de calificaciones -->
+      <div class="row g-4" ng-if="!cargando">
+        <div class="col-12 col-sm-6 col-md-4"
+             ng-repeat="c in calificaciones | orderBy:'-Calificacion' | limitTo:3">
+          
+          <div class="card border-0 shadow-lg h-100 rounded-4"
+               style="transition: transform 0.3s; background: linear-gradient(145deg, #0d6efd, #0b5ed7);"
+               onmouseover="this.style.transform='scale(1.04)'"
+               onmouseout="this.style.transform='scale(1)'">
+            
+            <div class="card-header bg-transparent text-center fw-bold text-white border-0">
+              🏅 Puesto #{{ $index + 1 }}
             </div>
 
-            <div class="card-footer text-center bg-transparent">
-              <button
-                class="btn btn-sm btn-outline-light"
-                ng-click="verDetalles(c)"
-              >
+            <div class="card-body text-center text-white">
+              <i class="bi bi-person-circle fs-1 mb-2"></i>
+              <h5 class="fw-bold mb-1">{{ c.NombreCompleto }}</h5>
+              <p class="mb-1">Calificación promedio: <strong>{{ c.Calificacion }}</strong></p>
+              <p class="small opacity-75 mb-3">{{ c.Categoria }}</p>
+
+              <!-- Rango decorado -->
+              <span class="badge rounded-pill px-3 py-2 fs-6"
+                    ng-class="{
+                      'bg-success': c.rango === 'Excelente',
+                      'bg-primary': c.rango === 'Bueno',
+                      'bg-warning text-dark': c.rango === 'Regular',
+                      'bg-danger': c.rango === 'Insuficiente'
+                    }">
+                {{ c.rango }}
+              </span>
+            </div>
+
+            <div class="card-footer text-center bg-transparent border-0">
+              <button class="btn btn-outline-light btn-sm px-3 fw-semibold"
+                      ng-click="verDetalles(c)">
                 <i class="bi bi-info-circle"></i> Ver detalles
               </button>
             </div>
+
           </div>
         </div>
-        <!-- Fin ng-repeat -->
       </div>
+
     </div>
   </div>
 </div>
