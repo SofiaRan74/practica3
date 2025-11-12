@@ -91,36 +91,6 @@ app.service("MensajesService", function () {
     this.pop   = pop
     this.toast = toast
 })
-app.service("ProductoAPI", function ($q) {
-    this.producto = function (id) {
-        var deferred = $q.defer()
-
-        $.get(`producto/${id}`)
-        .done(function (producto){
-            deferred.resolve(producto)
-        })
-        .fail(function (error) {
-            deferred.reject(error)
-        })
-
-        return deferred.promise
-   }
-})
-app.service("RecetaAPI", function ($q) {
-    this.ingredientesProducto = function (producto) {
-        var deferred = $q.defer()
-
-        $.get(`productos/ingredientes/${producto}`)
-        .done(function (ingredientes){
-            deferred.resolve(ingredientes)
-        })
-        .fail(function (error) {
-            deferred.reject(error)
-        })
-
-        return deferred.promise
-    }
-})
 app.service("CalificacionAPI", function ($q) {
     this.buscarCalificaciones = function () {
         const deferred = $q.defer();
@@ -130,16 +100,6 @@ app.service("CalificacionAPI", function ($q) {
         return deferred.promise;
     };
 });
-app.factory("RecetaFacade", function(ProductoAPI, RecetaAPI, $q) {
-    return {
-        obtenerRecetaProducto: function(producto) {
-            return $q.all({
-                producto: ProductoAPI.producto(producto),
-                ingredientes: RecetaAPI.ingredientesProducto(producto)
-            })
-        }
-    };
-})
 app.factory("CalificacionFactory", function () {
     function Calificacion(idCalificacion, nombrecompleto, valorCalificacion, categoria) {
         this.idCalificacion = idCalificacion;
@@ -160,6 +120,88 @@ app.factory("CalificacionFactory", function () {
     return {
         create: function (idCalificacion, nombrecompleto, valorCalificacion, categoria) {
             return new Calificacion(idCalificacion, nombrecompleto, valorCalificacion, categoria);
+        }
+    };
+});
+app.factory("CalificacionDecorator", function () {
+    function decorate(calificacion, extraData) {
+        // Agregar propiedades nuevas o calculadas
+        calificacion.fecha = extraData?.fecha || new Date().toISOString();
+        calificacion.comentario = extraData?.comentario || "Sin comentarios";
+
+        // Método para saber si la calificación es excelente
+        calificacion.esExcelente = function () {
+            return this.Calificacion >= 90;
+        };
+
+        // Método que devuelve información más completa
+        calificacion.getInfoDetallada = function () {
+            return {
+                idCalificacion: this.idCalificacion,
+                NombreCompleto: this.NombreCompleto,
+                Calificacion: this.Calificacion,
+                Categoria: this.Categoria,
+                esExcelente: this.esExcelente(),
+                fecha: this.fecha,
+                comentario: this.comentario
+            };
+        };
+
+        return calificacion;
+    }
+
+    return {
+        decorate: decorate
+    };
+});
+app.factory("CalificacionFacade", function (CalificacionAPI, CalificacionFactory, CalificacionDecorator, $q) {
+    return {
+        obtenerCalificaciones: function () {
+            const deferred = $q.defer();
+
+            CalificacionAPI.buscarCalificaciones()
+                .then(function (data) {
+                    const calificacionesDecoradas = data.map(c => {
+                        // Crear el objeto base usando la factory
+                        let calificacion = CalificacionFactory.create(
+                            c.idCalificacion,
+                            c.NombreCompleto,
+                            c.Calificacion,
+                            c.Categoria
+                        );
+
+                        // Agregar datos extra o decoraciones
+                        const extraData = {
+                            fecha: c.fecha || new Date().toISOString(),
+                            comentario: c.comentario || "Sin comentarios"
+                        };
+
+                        // Decorar el objeto
+                        return CalificacionDecorator.decorate(calificacion, extraData);
+                    });
+
+                    deferred.resolve(calificacionesDecoradas);
+                })
+                .catch(err => deferred.reject(err));
+
+            return deferred.promise;
+        },
+
+        obtenerTopTres: function () {
+            const deferred = $q.defer();
+
+            this.obtenerCalificaciones()
+                .then(function (calificaciones) {
+                    // Ordenar de mayor a menor
+                    const topTres = calificaciones
+                        .sort((a, b) => b.Calificacion - a.Calificacion)
+                        .slice(0, 3);
+
+                    deferred.resolve(topTres);
+                })
+                .catch(err => deferred.reject(err));
+
+            return deferred.promise;
         }
     };
 });
@@ -691,31 +733,54 @@ app.controller("loginCtrl", function ($scope, $http, $rootScope) {
         disableAll()
     })
 })
-app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, CalificacionFactory, SesionService) {
+app.controller("CalificacionesCtrl", function ($scope, CalificacionFacade, MensajesService, SesionService) {
+
     // Inicializamos el array de calificaciones
     $scope.calificaciones = [];
+    $scope.topTres = [];
 
-    // Función para cargar los datos desde la API
+    // Función para cargar todas las calificaciones
     $scope.cargarCalificaciones = function() {
-        CalificacionAPI.buscarCalificaciones()
+        CalificacionFacade.obtenerCalificaciones()
             .then(function (data) {
-                // Convertimos los objetos planos en instancias del factory
-                $scope.calificaciones = data.map(function(c) {
-                    return CalificacionFactory.create(
-                        c.idCalificacion,
-                        c.NombreCompleto,
-                        c.Calificacion,
-                        c.Categoria
-                    );
-                });
+                $scope.calificaciones = data;
+
+                // Ordenamos de mayor a menor
                 $scope.calificaciones.sort(function(a, b) {
                     return b.Calificacion - a.Calificacion;
                 });
+
+                MensajesService.toast("✅ Calificaciones cargadas correctamente");
             })
             .catch(function(error) {
                 console.error("❌ Error al obtener calificaciones:", error);
+                MensajesService.modal("No se pudieron cargar las calificaciones.");
             });
     };
+
+    // Función para cargar el Top 3
+    $scope.cargarTopTres = function() {
+        CalificacionFacade.obtenerTopTres()
+            .then(function (top3) {
+                $scope.topTres = top3;
+                MensajesService.toast("🏆 Top 3 de calificaciones listo");
+            })
+            .catch(function(error) {
+                console.error("❌ Error al obtener Top 3:", error);
+                MensajesService.modal("Error al cargar el Top 3 de calificaciones.");
+            });
+    };
+
+    // Puedes cargar ambas listas al iniciar el controlador
+    $scope.init = function() {
+        $scope.cargarCalificaciones();
+        $scope.cargarTopTres();
+    };
+
+    // Ejecutamos al cargar la vista
+    $scope.init();
+});
+
 
     // Llamamos la función al iniciar el controlador
     $scope.cargarCalificaciones();
@@ -735,6 +800,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionAPI, Califica
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
