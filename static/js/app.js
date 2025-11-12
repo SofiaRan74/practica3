@@ -745,7 +745,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
      $scope.verDetalles = function(c) {
         alert(
             "Detalles del alumno:\n" +
-            "Alumno: " + c.idAlumno + "\n" +
+            "Alumno: " + c.NombreCompleto + "\n" +
             "Calificación: " + c.Calificacion + "\n" +
             "Categoría: " + c.Categoria
         );
@@ -756,6 +756,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
