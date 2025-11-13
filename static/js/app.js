@@ -737,7 +737,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
         if (newVal > oldVal){
             $.get("log", {
                 actividad: "Subida de Top.",
-                descripción: `"${newVal}" acaba de superar el Top uno`
+                descripcion: `"${newVal}" acaba de superar el Top uno`
             })
         }
     })
@@ -764,6 +764,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
