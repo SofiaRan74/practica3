@@ -704,13 +704,19 @@ app.controller("loginCtrl", function ($scope, $http, $rootScope) {
         $.post("iniciarSesion", $(this).serialize(), function (respuesta) {
             enableAll()
 
-            if (respuesta.length) {
-                localStorage.setItem("login", "1")
-                localStorage.setItem("preferencias", JSON.stringify(respuesta[0]))
-                $("#frmInicioSesion").get(0).reset()
-                location.reload()
-                return
-            }
+          if (respuesta.length) {
+
+            $.get("log", {
+                actividad: "Inicio de sesión",
+                descripcion: `El usuario ${respuesta[0].usr} inició sesión correctamente.`
+            });
+        
+            localStorage.setItem("login", "1")
+            localStorage.setItem("preferencias", JSON.stringify(respuesta[0]))
+            $("#frmInicioSesion").get(0).reset()
+            location.reload()
+            return
+        }
 
             pop(".div-inicio-sesion", "Usuario y/o contrase&ntilde;a incorrecto(s)", "danger")
         })
@@ -764,6 +770,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
