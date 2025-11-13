@@ -733,14 +733,40 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
         .finally(function () {
             $scope.cargando = false;
         });
-    $scope.$watch("top1", function (newVal, oldVal) {
-        if (newVal > oldVal){
-            $.get("log", {
-                actividad: "Subida de Top.",
-                descripcion: `"${newVal}" acaba de superar el Top uno`
-            })
-        }
+  
+    
+$scope.top1 = 0;
+$scope.top1Nombre = "";
+
+$scope.$watch("top1", function (newVal, oldVal) {
+  if (oldVal && newVal > oldVal) {
+    $.get("log", {
+      actividad: "Subida de Top",
+      descripcion: `"${newVal}" acaba de superar el Top uno`
     })
+    .done(cargarLogs);
+  }
+});
+
+$scope.$watch("top1Nombre", function (newVal, oldVal) {
+  if (oldVal && newVal !== oldVal) {
+    $.get("log", {
+      actividad: "Cambio de Top 1",
+      descripcion: `"${newVal}" ahora ocupa el primer lugar (antes: "${oldVal}")`
+    })
+    .done(cargarLogs);
+  }
+});
+
+
+  $.get("log", function (data) {
+    $("#logArea").text(data);
+  });
+}
+
+// --- Cargar logs al inicio ---
+cargarLogs();
+
 
     $scope.recargar = function () {
         $scope.cargando = true;
@@ -764,6 +790,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
