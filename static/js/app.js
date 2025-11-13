@@ -734,7 +734,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
             $scope.cargando = false;
         });
   
-    $scope.top1 = 0;
+    $scope.top1 = "";
     $scope.top1Nombre = "";
 
     // --- Log de cambio de calificación ---
@@ -791,6 +791,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
