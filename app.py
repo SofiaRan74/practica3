@@ -93,25 +93,35 @@ def iniciarSesion():
 
     cursor.execute(sql, val)
     registros = cursor.fetchall()
-
     cursor.close()
 
-    session["login"] = False
-    session["login-usr"] = None
-    session["login-tipo"] = 0
-
     if registros:
-        usuario = registros[0]
+        usuario_info = registros[0]
         session["login"] = True
-        session["login-usr"] = usuario["Nombre_Usuario"]
-        session["login-tipo"] = usuario["Tipo_Usuario"]
+        session["login-usr"] = usuario_info["Nombre_Usuario"]
+        session["login-tipo"] = usuario_info["Tipo_Usuario"]
+        registrar_log_sesion(usuario_info["Nombre_Usuario"], "Inicio de sesión")
+    else:
+        registrar_log_sesion(usuario, "Intento fallido")
 
     return make_response(jsonify(registros))
+    
+def registrar_log_sesion(usuario, accion):
+    tz = pytz.timezone("America/Matamoros")
+    ahora = datetime.datetime.now(tz)
+    fechaHoraStr = ahora.strftime("%Y-%m-%d %H:%M:%S")
+
+    with open("log-sesiones.txt", "a") as f:
+        f.write(f"{usuario}\t{accion}\t{fechaHoraStr}\n")
+
 
 
 @app.route("/cerrarSesion", methods=["POST"])
 @requiere_login
 def cerrarSesion():
+    usuario = session.get("login-usr", "Desconocido")
+    registrar_log_sesion(usuario, "Cierre de sesión")
+
     session["login"] = False
     session["login-usr"] = None
     session["login-tipo"] = 0
@@ -217,6 +227,7 @@ def logProductos():
 # ---------- EJECUCIÓN ----------
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
