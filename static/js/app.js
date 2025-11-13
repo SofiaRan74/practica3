@@ -734,40 +734,40 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
             $scope.cargando = false;
         });
   
-    
-$scope.top1 = 0;
-$scope.top1Nombre = "";
+    $scope.top1 = 0;
+    $scope.top1Nombre = "";
 
-$scope.$watch("top1", function (newVal, oldVal) {
-  if (oldVal && newVal > oldVal) {
-    $.get("log", {
-      actividad: "Subida de Top",
-      descripcion: `"${newVal}" acaba de superar el Top uno`
-    })
-    .done(cargarLogs);
-  }
-});
+    // --- Log de cambio de calificación ---
+    $scope.$watch("top1", function (newVal, oldVal) {
+        if (oldVal && newVal > oldVal) {
+            $.get("log", {
+                actividad: "Subida de Top",
+                descripcion: `"${newVal}" acaba de superar el Top uno`
+            }).done(cargarLogs);
+        }
+    });
 
-$scope.$watch("top1Nombre", function (newVal, oldVal) {
-  if (oldVal && newVal !== oldVal) {
-    $.get("log", {
-      actividad: "Cambio de Top 1",
-      descripcion: `"${newVal}" ahora ocupa el primer lugar (antes: "${oldVal}")`
-    })
-    .done(cargarLogs);
-  }
-});
+    // --- Log de cambio de nombre ---
+    $scope.$watch("top1Nombre", function (newVal, oldVal) {
+        if (oldVal && newVal !== oldVal) {
+            $.get("log", {
+                actividad: "Cambio de Top 1",
+                descripcion: `"${newVal}" ahora ocupa el primer lugar (antes: "${oldVal}")`
+            }).done(cargarLogs);
+        }
+    });
 
+    // --- Función para cargar logs ---
+    function cargarLogs() {
+        $.get("log", function (data) {
+            $("#logArea").text(data);
+        });
+    }
 
-  $.get("log", function (data) {
-    $("#logArea").text(data);
-  });
-}
+    // --- Cargar logs al inicio ---
+    cargarLogs();
 
-// --- Cargar logs al inicio ---
-cargarLogs();
-
-
+    // --- Recargar calificaciones ---
     $scope.recargar = function () {
         $scope.cargando = true;
         CalificacionesFacade.obtenerTop3()
@@ -776,7 +776,9 @@ cargarLogs();
             })
             .finally(() => $scope.cargando = false);
     };
-     $scope.verDetalles = function(c) {
+
+    // --- Ver detalles del alumno ---
+    $scope.verDetalles = function(c) {
         alert(
             "Detalles del alumno:\n" +
             "Alumno: " + c.NombreCompleto + "\n" +
@@ -786,10 +788,10 @@ cargarLogs();
     };
 });
 
-
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
