@@ -944,12 +944,41 @@ app.controller("DatosCtrl", function ($scope, CalificacionAPI) {
                 .finally(function () { enableAll(); });
         });
     }
+        function configurarPusher() {
+        // Verificamos si la librería Pusher cargó
+            if (typeof Pusher === 'undefined') return;
+    
+            Pusher.logToConsole = true; // Para ver errores en consola (F12)
+            
+            var pusher = new Pusher('505a9219e50795c4885e', { 
+                cluster: 'us2' 
+            });
+            
+            var channel = pusher.subscribe('for-nature-533');
+            
+            // CORRECCIÓN: Usamos 'eventoCalificaciones' que es lo que pusiste en tu Python
+            channel.bind('eventoCalificaciones', function(data) {
+                console.log("🔔 Pusher avisó: Datos actualizados");
+                
+                // Recargamos la tabla automáticamente manteniendo la búsqueda actual
+                const texto = $("#Contbuscar").val();
+                cargarTabla(texto);
+                
+                // Opcional: Mostrar un aviso visual
+                // MensajesService.toast("La tabla se ha actualizado automáticamente");
+            });
+        }
 
+    // Inicializamos todo
+    $scope.init();
 
+}); // <--- ESTA LLAVE CIERRA EL CONTROLADOR "DatosCtrl"
 
+// Listener global fuera del controlador
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
