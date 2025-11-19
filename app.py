@@ -171,7 +171,7 @@ def tbodyCalificacion():
     registros = cursor.fetchall()
     cursor.close()
 
-    return render_template("tbodyCalificacion.html", apoyos=registros)
+    return render_template("tbodyCalificacion.html", calificaciones=registros)
 
 @app.route("/calificaciones/buscar", methods=["GET"])
 def buscarCalificaciones():
@@ -289,6 +289,7 @@ def logProductos():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
