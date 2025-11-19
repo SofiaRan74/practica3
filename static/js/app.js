@@ -766,10 +766,164 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
     };
 });
 
+app.controller("CalificacionesFormCtrl", function ($scope, CalificacionAPI) {
+
+    let autoActualizar = false; // si quieres refrescar con pusher únicamente cuando esté true
+
+    // Inicialización
+    $scope.init = function () {
+        cargarSelects();
+        cargarTabla(); // carga inicial usando /tbodyCalificacion (HTML)
+        configurarEventos();
+        configurarPusher();
+    };
+
+    // Carga selects (alumnos y opciones de calificación)
+    function cargarSelects() {
+        // Alumnos (asumo /alumnos)
+        $.get("/alumnos", function (data) {
+            const $s = $("#idAlumno");
+            $s.empty().append('<option value="">Selecciona un alumno</option>');
+            data.forEach(a => {
+                // si tu alumno tiene NombreCompleto o nombre, ajusta aquí
+                const texto = a.NombreCompleto || a.nombre || `${a.idAlumno}`;
+                $s.append(`<option value="${a.idAlumno}">${texto}</option>`);
+            });
+        }).fail(function () {
+            console.warn("No se pudo cargar /alumnos. Asegúrate del endpoint.");
+        });
+
+        // Opciones de calificación (ejemplo: 0 - 100)
+        const $cal = $("#calificacion");
+        $cal.empty().append('<option value="">Selecciona calificación</option>');
+        for (let i = 100; i >= 0; i -= 1) {
+            $cal.append(`<option value="${i}">${i}</option>`);
+        }
+    }
+
+    // Carga tabla: si busqueda vacío usamos HTML renderizado por Flask (más simple)
+    function cargarTabla(busqueda = "") {
+        if (!busqueda || busqueda.trim() === "") {
+            $.get("/tbodyCalificacion", function (trsHTML) {
+                $("#tbodyCalificacion").html(trsHTML);
+            }).fail(function () {
+                // fallback: pedir JSON si /tbody falla
+                cargarTablaJSON("");
+            });
+        } else {
+            // buscar por texto (JSON)
+            cargarTablaJSON(busqueda);
+        }
+    }
+
+    function cargarTablaJSON(busqueda = "") {
+        $.get("/calificaciones/buscar", { busqueda: busqueda }, function (data) {
+            let html = "";
+            data.forEach(c => {
+                const nombre = c.NombreCompleto || c.idAlumno;
+                html += `
+                    <tr>
+                        <td>${c.idCalificacion}</td>
+                        <td>${nombre}</td>
+                        <td>${c.Calificacion}</td>
+                        <td>${c.Categoria}</td>
+                        <td class="text-center">
+                            <button class="btn btn-info btn-editar" data-id="${c.idCalificacion}">Editar</button>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-danger btn-eliminar" data-id="${c.idCalificacion}">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            $("#tbodyCalificacion").html(html);
+        }).fail(function () {
+            $("#tbodyCalificacion").html('<tr><td colspan="6" class="text-center">Error al cargar datos</td></tr>');
+        });
+    }
+
+    // Configurar eventos delegados
+    function configurarEventos() {
+        // Buscar
+        $(document).off("click", "#btnBuscar").on("click", "#btnBuscar", function (e) {
+            e.preventDefault();
+            const texto = $("#Contbuscar").val();
+            cargarTabla(texto);
+        });
+
+        // Editar (delegado)
+        $(document).off("click", ".btn-editar").on("click", ".btn-editar", function () {
+            const id = $(this).data("id");
+            if (!id) return;
+            // pedimos registro por id
+            CalificacionAPI.obtenerPorId(id)
+                .then(function (data) {
+                    if (!Array.isArray(data) || data.length === 0) {
+                        alert("Registro no encontrado");
+                        return;
+                    }
+                    const c = data[0];
+                    $("#idCalificacion").val(c.idCalificacion || "");
+                    $("#idAlumno").val(c.idAlumno || "");
+                    $("#calificacion").val(c.Calificacion || "");
+                    $("#categoria").val(c.Categoria || "");
+                    // scroll o focus al formulario
+                    $("html, body").animate({ scrollTop: $("#frmCalificaciones").offset().top - 20 }, 300);
+                })
+                .catch(function (err) {
+                    console.error(err);
+                    alert("Error al obtener calificación");
+                });
+        });
+
+        // Guardar (submit formulario)
+        $(document).off("submit", "#frmCalificaciones").on("submit", "#frmCalificaciones", function (e) {
+            e.preventDefault();
+            disableAll();
+            const payload = {
+                idCalificacion: $("#idCalificacion").val() || "",
+                idAlumno: $("#idAlumno").val(),
+                calificacion: $("#calificacion").val(),
+                categoria: $("#categoria").val()
+            };
+
+            CalificacionAPI.guardar(payload)
+                .then(function () {
+                    cargarTabla();
+                    $("#frmCalificaciones")[0].reset();
+                    $("#idCalificacion").val("");
+                })
+                .catch(function (err) {
+                    console.error("Error al guardar:", err);
+                    alert("Error al guardar calificación");
+                })
+                .finally(function () {
+                    enableAll();
+                });
+        });
+
+        // Eliminar
+        $(document).off("click", ".btn-eliminar").on("click", ".btn-eliminar", function () {
+            const id = $(this).data("id");
+            if (!id) return;
+            if (!confirm("¿Seguro que deseas eliminar esta calificación?")) return;
+            disableAll();
+            CalificacionAPI.eliminar(id)
+                .then(function () { cargarTabla(); })
+                .catch(function (err) {
+                    console.error("Error al eliminar:", err);
+                    alert("Error al eliminar");
+                })
+                .finally(function () { enableAll(); });
+        });
+    }
+
+
 
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
