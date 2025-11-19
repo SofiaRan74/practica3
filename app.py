@@ -1,17 +1,16 @@
-from flask import Flask, render_template, request, jsonify, make_response, session
+from flask import Flask, render_template, request, jsonify, make_response, session, send_from_directory
 import mysql.connector
 import pusher
 import datetime
 import pytz
 from flask_cors import CORS
-from functools import wraps 
-from flask import send_from_directory
+from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = "Test12345"
 CORS(app)
 
-# ---------- CONEXIÓN A BASE DE DATOS (Singleton) ----------
+
 class DatabaseConnection:
     _instance = None
     _connection = None
@@ -35,13 +34,11 @@ class DatabaseConnection:
             print(f"❌ Error al conectar con MySQL: {err}")
 
     def get_connection(self):
-        # Si la conexión se cerró, vuelve a abrirla
+        # Reabrir si se cayó
         if not self._connection.is_connected():
             self._connect()
         return self._connection
 
-
-# ---------- PUSHER ----------
 def pusherCalificaciones():
     pusher_client = pusher.Pusher(
         app_id='1891402',
@@ -55,7 +52,6 @@ def pusherCalificaciones():
     return make_response(jsonify({}))
 
 
-# ---------- DECORADOR DE LOGIN ----------
 def requiere_login(fun):
     @wraps(fun)
     def decorador(*args, **kwargs):
@@ -63,9 +59,8 @@ def requiere_login(fun):
             return jsonify({"error": "No has iniciado sesión"}), 401
         return fun(*args, **kwargs)
     return decorador
+    
 
-
-# ---------- RUTAS ----------
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -81,8 +76,9 @@ def iniciarSesion():
     usuario = request.form["usuario"]
     contrasena = request.form["contrasena"]
 
-    db = DatabaseConnection().get_connection()
-    cursor = db.cursor(dictionary=True)
+    con = DatabaseConnection().get_connection()
+    cursor = con.cursor(dictionary=True)
+
     sql = """
         SELECT Id_Usuario, Nombre_Usuario, Tipo_Usuario
         FROM usuarios
@@ -105,7 +101,8 @@ def iniciarSesion():
         registrar_log_sesion(usuario, "Intento fallido")
 
     return make_response(jsonify(registros))
-    
+
+
 def registrar_log_sesion(usuario, accion):
     tz = pytz.timezone("America/Matamoros")
     ahora = datetime.datetime.now(tz)
@@ -113,7 +110,6 @@ def registrar_log_sesion(usuario, accion):
 
     with open("log-sesiones.txt", "a") as f:
         f.write(f"{usuario}\t{accion}\t{fechaHoraStr}\n")
-
 
 
 @app.route("/cerrarSesion", methods=["POST"])
@@ -144,13 +140,11 @@ def calificaciones():
 
 @app.route("/tbodyCalificacion")
 def tbodyCalificacion():
-    db = DatabaseConnection().get_connection()
-    cursor = db.cursor(dictionary=True)
+    con = DatabaseConnection().get_connection()
+    cursor = con.cursor(dictionary=True)
+
     sql = """
-        SELECT idCalificacion,
-               idAlumno,
-               Calificacion,
-               Categoria
+        SELECT idCalificacion, idAlumno, Calificacion, Categoria
         FROM calificaciones
         ORDER BY idCalificacion DESC
         LIMIT 10 OFFSET 0
@@ -158,7 +152,6 @@ def tbodyCalificacion():
 
     cursor.execute(sql)
     registros = cursor.fetchall()
-
     cursor.close()
 
     return render_template("tbodyCalificacion.html", apoyos=registros)
@@ -166,11 +159,10 @@ def tbodyCalificacion():
 
 @app.route("/calificaciones/buscar", methods=["GET"])
 def buscarCalificaciones():
-    db = DatabaseConnection().get_connection()
-    cursor = db.cursor(dictionary=True)
+    con = DatabaseConnection().get_connection()
+    cursor = con.cursor(dictionary=True)
 
-    args = request.args
-    busqueda = args.get("busqueda", "")
+    busqueda = request.args.get("busqueda", "")
     busqueda = f"%{busqueda}%"
 
     sql = """
@@ -192,70 +184,63 @@ def buscarCalificaciones():
         cursor.execute(sql, val)
         registros = cursor.fetchall()
     except mysql.connector.errors.ProgrammingError as error:
-        print(f"Ocurrió un error de programación en MySQL: {error}")
+        print(f"Ocurrió un error en MySQL: {error}")
         registros = []
     finally:
         cursor.close()
 
     return make_response(jsonify(registros))
-    
-@app.route("/calificacion", methods=["POST"])
-# Usar cuando solo se quiera usar CORS en rutas específicas
-# @cross_origin()
-def guardarCalificacion():
-    if not con.is_connected():
-        con.reconnect()
 
-    idCalificacion    = request.form["idCalificacion"]
-    idAlumno  = request.form["idAlumno"]
-    Calificacion    = request.form["calificacion"]
-    Categoria      = request.form["categoria"]
-    # fechahora   = datetime.datetime.now(pytz.timezone("America/Matamoros"))
-    
+@app.route("/calificacion", methods=["POST"])
+def guardarCalificacion():
+    con = DatabaseConnection().get_connection()
     cursor = con.cursor()
+
+    idCalificacion = request.form["idCalificacion"]
+    idAlumno = request.form["idAlumno"]
+    Calificacion = request.form["calificacion"]
+    Categoria = request.form["categoria"]
 
     if idCalificacion:
         sql = """
         UPDATE calificaciones
-
         SET idAlumno = %s,
-        Calificacion = %s,
-        Categoria     = %s
-        
+            Calificacion = %s,
+            Categoria = %s
         WHERE idCalificacion = %s
         """
-        val = (idAlumno, calificacion, categoria, idCAlificacion)
+        val = (idAlumno, Calificacion, Categoria, idCalificacion)
     else:
         sql = """
         INSERT INTO calificaciones (idAlumno, Calificacion, Categoria)
-                    VALUES    (%s,          %s,      %s )
+        VALUES (%s, %s, %s)
         """
-        val =                 (idAlumno, calificacion, categoria )
-    
+        val = (idAlumno, Calificacion, Categoria)
+
     cursor.execute(sql, val)
     con.commit()
-    con.close()
+    cursor.close()
 
     pusherCalificaciones()
-    
+
     return make_response(jsonify({}))
+
 @app.route("/calificacion/eliminar", methods=["POST"])
 def eliminarCalificacion():
-    if not con.is_connected():
-        con.reconnect()
+    con = DatabaseConnection().get_connection()
 
     idCalificacion = request.form["idCalificacion"]
 
-    cursor = con.cursor(dictionary=True)
-    sql    = """
-    DELETE FROM idCalificaciones
+    cursor = con.cursor()
+    sql = """
+    DELETE FROM calificaciones
     WHERE idCalificacion = %s
     """
-    val    = (idApoyo,)
+    val = (idCalificacion,)
 
     cursor.execute(sql, val)
     con.commit()
-    con.close()
+    cursor.close()
 
     return make_response(jsonify({}))
 
@@ -264,15 +249,15 @@ def fechaHora():
     zona = pytz.timezone("America/Mexico_City")
     ahora = datetime.datetime.now(zona)
     return ahora.strftime("%Y-%m-%d %H:%M:%S")
-    
+
+
 @app.route("/log", methods=["GET"])
 def logProductos():
-    args         = request.args
-    actividad    = args["actividad"]
-    descripcion  = args["descripcion"]
-    tz           = pytz.timezone("America/Matamoros")
-    ahora        = datetime.datetime.now(tz)
-    fechaHoraStr = ahora.strftime("%Y-%m-%d %H:%M:%S")
+    actividad = request.args["actividad"]
+    descripcion = request.args["descripcion"]
+
+    tz = pytz.timezone("America/Matamoros")
+    fechaHoraStr = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
 
     with open("log-busquedas.txt", "a") as f:
         f.write(f"{actividad}\t{descripcion}\t{fechaHoraStr}\n")
@@ -283,15 +268,5 @@ def logProductos():
     return log
 
 
-# ---------- EJECUCIÓN ----------
 if __name__ == "__main__":
     app.run(debug=True)
-
-
-
-
-
-
-
-
-
