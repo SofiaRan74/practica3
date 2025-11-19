@@ -1,1 +1,39 @@
+<form id="frmApoyo" method="post">
+    <input type="hidden" id="idCalificacion" name="idCalificacion">
+    <div class="mb-1">
+        <label>Alumno:</label>
+        <select class="form-control" id="mascota" name="mascota"></select>
+    </div>
+    <div class="mb-1">
+        <label>Calificacion:</label>
+        <select class="form-control" id="padrino" name="padrino"></select>
+    </div>
+    <div class="mb-1">
+        <label>Categoría:</label>
+        <input type="text" class="form-control" id="monto" name="monto">
+    </div>
+    <div class="mb-1 text-end">
+        <button class="btn btn-primary">Guardar</button>
+    </div>
+</form>
+<div class="input-group mb-5">
+    <input type="text" class="form-control" id="Contbuscar" name="Contbuscar" placeholder="Buscar...">
+    <button class="btn btn-primary" id="btnBuscar">Buscar</button>
+</div>
+<div class="table-responsive">
+    <table class="table table-sm">
+        <thead class="table-active">
+            <tr>
+                <th>Id</th>
+                <th>Alumno</th>
+                <th>Calificacion</th>
+                <th>Categoría</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="tbodyCalificacion"></tbody>
+    </table>
+</div>
+
 
