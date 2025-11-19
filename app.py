@@ -138,24 +138,35 @@ def calificaciones():
     return send_from_directory("templates", "calificaciones.html")
 
 
+# --- AGREGAR ESTA RUTA NUEVA ---
+@app.route("/alumnos", methods=["GET"])
+def getAlumnos():
+    con = DatabaseConnection().get_connection()
+    cursor = con.cursor(dictionary=True)
+    # Asumo que tu tabla se llama 'alumnos' y tiene 'idAlumno' y 'NombreCompleto'
+    cursor.execute("SELECT idAlumno, NombreCompleto FROM alumnos ORDER BY NombreCompleto ASC")
+    registros = cursor.fetchall()
+    cursor.close()
+    return make_response(jsonify(registros))
+
 @app.route("/tbodyCalificacion")
 def tbodyCalificacion():
     con = DatabaseConnection().get_connection()
     cursor = con.cursor(dictionary=True)
 
     sql = """
-        SELECT idCalificacion, idAlumno, Calificacion, Categoria
-        FROM calificaciones
-        ORDER BY idCalificacion DESC
-        LIMIT 10 OFFSET 0
+        SELECT c.idCalificacion, a.NombreCompleto, c.Calificacion, c.Categoria
+        FROM calificaciones c
+        INNER JOIN alumnos a ON c.idAlumno = a.idAlumno
+        ORDER BY c.idCalificacion DESC
+        LIMIT 10
     """
-
+    
     cursor.execute(sql)
     registros = cursor.fetchall()
     cursor.close()
 
-    return render_template("tbodyCalificacion.html", calificaciones=registros)
-
+    return render_template("tbodyCalificacion.html", apoyos=registros)
 
 @app.route("/calificaciones/buscar", methods=["GET"])
 def buscarCalificaciones():
@@ -163,28 +174,31 @@ def buscarCalificaciones():
     cursor = con.cursor(dictionary=True)
 
     busqueda = request.args.get("busqueda", "")
-    busqueda = f"%{busqueda}%"
+    id_filtro = request.args.get("id") # Capturamos si viene un ID específico
 
     sql = """
-        SELECT idCalificacion,
-               NombreCompleto,
-               Calificacion,
-               Categoria
+        SELECT idCalificacion, idAlumno, NombreCompleto, Calificacion, Categoria
         FROM calificaciones
         INNER JOIN alumnos USING(idAlumno)
-        WHERE idAlumno LIKE %s
-        OR Calificacion LIKE %s
-        OR Categoria LIKE %s
-        ORDER BY Calificacion DESC
-        LIMIT 10 OFFSET 0
+        WHERE 1=1
     """
-    val = (busqueda, busqueda, busqueda)
+    val = []
+
+    if id_filtro:
+        sql += " AND idCalificacion = %s "
+        val.append(id_filtro)
+    elif busqueda:
+        busqueda = f"%{busqueda}%"
+        sql += " AND (NombreCompleto LIKE %s OR Calificacion LIKE %s OR Categoria LIKE %s) "
+        val.extend([busqueda, busqueda, busqueda])
+
+    sql += " ORDER BY Calificacion DESC LIMIT 10"
 
     try:
-        cursor.execute(sql, val)
+        cursor.execute(sql, tuple(val))
         registros = cursor.fetchall()
-    except mysql.connector.errors.ProgrammingError as error:
-        print(f"Ocurrió un error en MySQL: {error}")
+    except mysql.connector.Error as error:
+        print(f"Error SQL: {error}")
         registros = []
     finally:
         cursor.close()
@@ -270,4 +284,5 @@ def logProductos():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
