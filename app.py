@@ -138,6 +138,11 @@ def calificaciones():
     return send_from_directory("templates", "calificaciones.html")
 
 
+@app.route("/datos")
+def datos():
+    return send_from_directory("templates", "datos.html")
+
+
 # --- AGREGAR ESTA RUTA NUEVA ---
 @app.route("/alumnos", methods=["GET"])
 def getAlumnos():
@@ -284,5 +289,6 @@ def logProductos():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
