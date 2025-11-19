@@ -94,13 +94,36 @@ app.service("MensajesService", function () {
 
 app.factory("CalificacionAPI", function ($q) {
     return {
-        buscarCalificaciones: function () {
+        buscarCalificaciones: function (busqueda) {
             const deferred = $q.defer();
-
-            $.get("calificaciones/buscar") 
+            const data = busqueda ? { busqueda: busqueda } : {};
+            $.get("calificaciones/buscar", data)
                 .done(data => deferred.resolve(data))
                 .fail(err => deferred.reject(err));
-
+            return deferred.promise;
+        },
+        obtenerPorId: function (id) {
+            const deferred = $q.defer();
+            // Ahora enviamos { id: id } para que Python lo entienda
+            $.get("calificaciones/buscar", { id: id })
+                .done(data => deferred.resolve(data))
+                .fail(err => deferred.reject(err));
+            return deferred.promise;
+        },
+        guardar: function (payload) {
+            const deferred = $q.defer();
+            // Tu Python usa UNA sola ruta "/calificacion" para Insert y Update
+            $.post("calificacion", payload)
+                .done(data => deferred.resolve(data))
+                .fail(err => deferred.reject(err));
+            return deferred.promise;
+        },
+        eliminar: function (id) {
+            const deferred = $q.defer();
+            // Tu ruta Python es singular: "/calificacion/eliminar"
+            $.post("calificacion/eliminar", { idCalificacion: id })
+                .done(data => deferred.resolve(data))
+                .fail(err => deferred.reject(err));
             return deferred.promise;
         }
     };
@@ -927,6 +950,7 @@ app.controller("DatosCtrl", function ($scope, CalificacionAPI) {
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
