@@ -1,11 +1,21 @@
-{% for calificacion in calificaciones %}
+{% for c in calificaciones %}
 <tr>
-    <td>{{ calificacion.idCalificacion }}</td>
-    <td>{{ calificacion.idAlumno}}</td>
-    <td>{{ calificacion.Calificacion }}</td>
-    <td>{{ calificacion.Categoria }}</td>
-    <td><button class="btn btn-info btn-editar" data-id="{{ calificacion.idApoyo }}">Editar</button></td>
-    <td><button class="btn btn-info btn-eliminar" data-id="{{ calificacion.idApoyo }}">Eliminar</button></td>
+    <td>{{ c.idCalificacion }}</td>
+    <td>{{ c.NombreCompleto }}</td>
+    <td>{{ c.Calificacion }}</td>
+    <td>{{ c.Categoria }}</td>
+
+    <td>
+        <button class="btn btn-info btn-editar" data-id="{{ c.idCalificacion }}">
+            Editar
+        </button>
+    </td>
+    <td>
+        <button class="btn btn-danger btn-eliminar" data-id="{{ c.idCalificacion }}">
+            Eliminar
+        </button>
+    </td>
 </tr>
 {% endfor %}
+
 
