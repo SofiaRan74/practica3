@@ -42,7 +42,7 @@ class DatabaseConnection:
 
 
 # ---------- PUSHER ----------
-def pusherApoyos():
+def pusherCalificaciones():
     pusher_client = pusher.Pusher(
         app_id='1891402',
         key='505a9219e50795c4885e',
@@ -198,6 +198,47 @@ def buscarCalificaciones():
         cursor.close()
 
     return make_response(jsonify(registros))
+    
+@app.route("/calificacion", methods=["POST"])
+# Usar cuando solo se quiera usar CORS en rutas específicas
+# @cross_origin()
+def guardarCalificacion():
+    if not con.is_connected():
+        con.reconnect()
+
+    idCalificacion    = request.form["idCalificacion"]
+    idAlumno  = request.form["idAlumno"]
+    Calificacion    = request.form["calificacion"]
+    Categoria      = request.form["categoria"]
+    # fechahora   = datetime.datetime.now(pytz.timezone("America/Matamoros"))
+    
+    cursor = con.cursor()
+
+    if idCalificacion:
+        sql = """
+        UPDATE calificaciones
+
+        SET idAlumno = %s,
+        Calificacion = %s,
+        Categoria     = %s
+        
+        WHERE idCalificacion = %s
+        """
+        val = (idAlumno, calificacion, categoria, idCAlificacion)
+    else:
+        sql = """
+        INSERT INTO calificaciones (idAlumno, Calificacion, Categoria)
+                    VALUES    (%s,          %s,      %s )
+        """
+        val =                 (idAlumno, calificacion, categoria )
+    
+    cursor.execute(sql, val)
+    con.commit()
+    con.close()
+
+    pusherCalificaciones()
+    
+    return make_response(jsonify({}))
 
 
 @app.route("/fechaHora")
@@ -227,6 +268,7 @@ def logProductos():
 # ---------- EJECUCIÓN ----------
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
