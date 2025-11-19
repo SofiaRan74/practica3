@@ -1,11 +1,11 @@
-{% for apoyo in apoyos %}
+{% for calificacion in calificaciones %}
 <tr>
-    <td>{{ apoyo.idApoyo }}</td>
-    <td>{{ apoyo.idMascota }}</td>
-    <td>{{ apoyo.idPadrino }}</td>
-    <td>{{ apoyo.monto }}</td>
-    <td>{{ apoyo.causa }}</td>
-    <td><button class="btn btn-info btn-editar" data-id="{{ apoyo.idApoyo }}">Editar</button></td>
-    <td><button class="btn btn-info btn-eliminar" data-id="{{ apoyo.idApoyo }}">Eliminar</button></td>
+    <td>{{ calificacion.idCalificacion }}</td>
+    <td>{{ calificacion.idAlumno}}</td>
+    <td>{{ calificacion.Calificacion }}</td>
+    <td>{{ calificacion.Categoria }}</td>
+    <td><button class="btn btn-info btn-editar" data-id="{{ calificacion.idApoyo }}">Editar</button></td>
+    <td><button class="btn btn-info btn-eliminar" data-id="{{ calificacion.idApoyo }}">Eliminar</button></td>
 </tr>
 {% endfor %}
+
