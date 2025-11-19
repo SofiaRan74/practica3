@@ -234,6 +234,10 @@ app.config(function ($routeProvider, $locationProvider, $provide) {
             templateUrl: "calificaciones",
             controller: "CalificacionesCtrl"
         })
+         .when("/datos", {
+            templateUrl: "datos",
+            controller: "DatosCtrl"
+        })
         .otherwise({
             redirectTo: "/"
         });
@@ -766,7 +770,7 @@ app.controller("CalificacionesCtrl", function ($scope, CalificacionesFacade, Ses
     };
 });
 
-app.controller("CalificacionesFormCtrl", function ($scope, CalificacionAPI) {
+app.controller("DatosCtrl", function ($scope, CalificacionAPI) {
 
     let autoActualizar = false; // si quieres refrescar con pusher únicamente cuando esté true
 
@@ -923,6 +927,7 @@ app.controller("CalificacionesFormCtrl", function ($scope, CalificacionAPI) {
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
