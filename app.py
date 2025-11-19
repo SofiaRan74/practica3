@@ -239,7 +239,25 @@ def guardarCalificacion():
     pusherCalificaciones()
     
     return make_response(jsonify({}))
+@app.route("/calificacion/eliminar", methods=["POST"])
+def eliminarCalificacion():
+    if not con.is_connected():
+        con.reconnect()
 
+    idCalificacion = request.form["idCalificacion"]
+
+    cursor = con.cursor(dictionary=True)
+    sql    = """
+    DELETE FROM idCalificaciones
+    WHERE idCalificacion = %s
+    """
+    val    = (idApoyo,)
+
+    cursor.execute(sql, val)
+    con.commit()
+    con.close()
+
+    return make_response(jsonify({}))
 
 @app.route("/fechaHora")
 def fechaHora():
@@ -268,6 +286,7 @@ def logProductos():
 # ---------- EJECUCIÓN ----------
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
