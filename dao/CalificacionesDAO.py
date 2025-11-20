@@ -1,4 +1,4 @@
-from DatabaseConnection import DatabaseConnection
+from dao.DatabaseConnection import DatabaseConnection
 import mysql.connector
 
 class CalificacionesDAO:
