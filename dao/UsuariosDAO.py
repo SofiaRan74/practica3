@@ -1,7 +1,7 @@
 from flask import session
 from datetime import datetime
 import pytz
-from DatabaseConnection import DatabaseConnection
+from dao.DatabaseConnection import DatabaseConnection
 
 class UsuariosDAO:
 
