@@ -1,4 +1,4 @@
-from DatabaseConnection import DatabaseConnection
+from dao.DatabaseConnection import DatabaseConnection
 
 class AlumnosDAO:
 
