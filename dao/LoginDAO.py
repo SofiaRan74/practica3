@@ -1,14 +1,22 @@
-def login_usuario(usuario, contrasena):
-    con = DatabaseConnection().get_connection()
-    cursor = con.cursor(dictionary=True)
+from dao.DatabaseConnection import DatabaseConnection
 
-    sql = """
-        SELECT Id_Usuario, Nombre_Usuario, Tipo_Usuario
-        FROM usuarios
-        WHERE Nombre_Usuario = %s
-        AND Contrasena = %s
-    """
-    cursor.execute(sql, (usuario, contrasena))
-    registros = cursor.fetchall()
-    cursor.close()
-    return registros
+class LoginDAO:
+
+    def __init__(self):
+        self.db = DatabaseConnection()
+
+    def validar_credenciales(self, usuario, password):
+        con = self.db.get_connection()
+        cursor = con.cursor(dictionary=True)
+
+        sql = """
+            SELECT * FROM usuarios 
+            WHERE usuario = %s AND password = %s
+        """
+
+        cursor.execute(sql, (usuario, password))
+        data = cursor.fetchone()
+
+        cursor.close()
+        con.close()
+        return data is not None
