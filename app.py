@@ -1,295 +1,78 @@
-from flask import Flask, render_template, request, jsonify, make_response, session, send_from_directory
-import mysql.connector
-import pusher
-import datetime
-import pytz
-from flask_cors import CORS
-from functools import wraps
+from flask import Flask, jsonify, request, render_template
+from dao.AlumnosDAO import AlumnosDAO
+from dao.CalificacionesDAO import CalificacionesDAO
+from dao.LoginDAO import LoginDAO
 
 app = Flask(__name__)
-app.secret_key = "Test12345"
-CORS(app)
 
+alumnos_dao = AlumnosDAO()
+calificaciones_dao = CalificacionesDAO()
+login_dao = LoginDAO()
 
-class DatabaseConnection:
-    _instance = None
-    _connection = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(DatabaseConnection, cls).__new__(cls)
-            cls._instance._connect()
-        return cls._instance
-
-    def _connect(self):
-        try:
-            self._connection = mysql.connector.connect(
-                host="185.232.14.52",
-                database="u760464709_23005116_bd",
-                user="u760464709_23005116_usr",
-                password="z8[T&05u"
-            )
-            print("✅ Conexión Singleton MySQL establecida")
-        except mysql.connector.Error as err:
-            print(f"❌ Error al conectar con MySQL: {err}")
-
-    def get_connection(self):
-        # Reabrir si se cayó
-        if not self._connection.is_connected():
-            self._connect()
-        return self._connection
-
-def pusherCalificaciones():
-    pusher_client = pusher.Pusher(
-        app_id='1891402',
-        key='505a9219e50795c4885e',
-        secret='fac4833b05652932a8bc',
-        cluster='us2',
-        ssl=True
-    )
-
-    pusher_client.trigger("for-nature-533", "eventoCalificaciones", {"message": "Hola Mundo!"})
-    return make_response(jsonify({}))
-
-
-def requiere_login(fun):
-    @wraps(fun)
-    def decorador(*args, **kwargs):
-        if not session.get("login"):
-            return jsonify({"error": "No has iniciado sesión"}), 401
-        return fun(*args, **kwargs)
-    return decorador
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    usuario = data.get("usuario")
+    password = data.get("password")
     
+    resultado = login_dao.validar_credenciales(usuario, password)
+
+    return jsonify({"login": resultado})
+
+
+@app.route("/calificaciones/buscar")
+def buscar_calificaciones():
+    filas = calificaciones_dao.buscar_calificaciones()
+    return jsonify(filas)
+
+
+@app.route("/calificaciones/registrar", methods=["POST"])
+def registrar_calificacion():
+    data = request.json
+    ok = calificaciones_dao.insertar_calificacion(
+        data["matricula"],
+        data["nombre"],
+        data["calificacion"]
+    )
+    return jsonify({"ok": ok})
+
+
+@app.route("/calificaciones/top1")
+def top1():
+    dato = calificaciones_dao.buscar_top1()
+    return jsonify(dato)
+
+
+@app.route("/alumnos/buscar")
+def buscar_alumnos():
+    filas = alumnos_dao.buscar_alumnos()
+    return jsonify(filas)
+
+
+@app.route("/alumnos/registrar", methods=["POST"])
+def registrar_alumno():
+    data = request.json
+    ok = alumnos_dao.insertar_alumno(
+        data["matricula"],
+        data["nombre"]
+    )
+    return jsonify({"ok": ok})
+
 
 @app.route("/")
-def index():
-    return render_template("index.html")
-
-
-@app.route("/login")
-def login():
+def login_template():
     return render_template("login.html")
 
 
-@app.route("/iniciarSesion", methods=["POST"])
-def iniciarSesion():
-    usuario = request.form["usuario"]
-    contrasena = request.form["contrasena"]
-
-    con = DatabaseConnection().get_connection()
-    cursor = con.cursor(dictionary=True)
-
-    sql = """
-        SELECT Id_Usuario, Nombre_Usuario, Tipo_Usuario
-        FROM usuarios
-        WHERE Nombre_Usuario = %s
-        AND Contrasena = %s
-    """
-    val = (usuario, contrasena)
-
-    cursor.execute(sql, val)
-    registros = cursor.fetchall()
-    cursor.close()
-
-    if registros:
-        usuario_info = registros[0]
-        session["login"] = True
-        session["login-usr"] = usuario_info["Nombre_Usuario"]
-        session["login-tipo"] = usuario_info["Tipo_Usuario"]
-        registrar_log_sesion(usuario_info["Nombre_Usuario"], "Inicio de sesión")
-    else:
-        registrar_log_sesion(usuario, "Intento fallido")
-
-    return make_response(jsonify(registros))
-
-
-def registrar_log_sesion(usuario, accion):
-    tz = pytz.timezone("America/Matamoros")
-    ahora = datetime.datetime.now(tz)
-    fechaHoraStr = ahora.strftime("%Y-%m-%d %H:%M:%S")
-
-    with open("log-sesiones.txt", "a") as f:
-        f.write(f"{usuario}\t{accion}\t{fechaHoraStr}\n")
-
-
-@app.route("/cerrarSesion", methods=["POST"])
-@requiere_login
-def cerrarSesion():
-    usuario = session.get("login-usr", "Desconocido")
-    registrar_log_sesion(usuario, "Cierre de sesión")
-
-    session["login"] = False
-    session["login-usr"] = None
-    session["login-tipo"] = 0
-    return make_response(jsonify({}))
-
-
-@app.route("/preferencias")
-@requiere_login
-def preferencias():
-    return make_response(jsonify({
-        "usr": session.get("login-usr"),
-        "tipo": session.get("login-tipo", 2)
-    }))
-
-
 @app.route("/calificaciones")
-def calificaciones():
-    return send_from_directory("templates", "calificaciones.html")
+def calificaciones_template():
+    return render_template("calificaciones.html")
 
 
 @app.route("/datos")
-def datos():
-    return send_from_directory("templates", "datos.html")
-
-
-# --- AGREGAR ESTA RUTA NUEVA ---
-@app.route("/alumnos", methods=["GET"])
-def getAlumnos():
-    con = DatabaseConnection().get_connection()
-    cursor = con.cursor(dictionary=True)
-    # Asumo que tu tabla se llama 'alumnos' y tiene 'idAlumno' y 'NombreCompleto'
-    cursor.execute("SELECT idAlumno, NombreCompleto FROM alumnos ORDER BY NombreCompleto ASC")
-    registros = cursor.fetchall()
-    cursor.close()
-    return make_response(jsonify(registros))
-
-@app.route("/tbodyCalificacion")
-def tbodyCalificacion():
-    con = DatabaseConnection().get_connection()
-    cursor = con.cursor(dictionary=True)
-
-    sql = """
-        SELECT c.idCalificacion, a.NombreCompleto, c.Calificacion, c.Categoria
-        FROM calificaciones c
-        INNER JOIN alumnos a ON c.idAlumno = a.idAlumno
-        ORDER BY c.idCalificacion DESC
-        LIMIT 10
-    """
-    
-    cursor.execute(sql)
-    registros = cursor.fetchall()
-    cursor.close()
-
-    return render_template("tbodyCalificacion.html", calificaciones=registros)
-
-@app.route("/calificaciones/buscar", methods=["GET"])
-def buscarCalificaciones():
-    con = DatabaseConnection().get_connection()
-    cursor = con.cursor(dictionary=True)
-
-    busqueda = request.args.get("busqueda", "")
-    id_filtro = request.args.get("id") # Capturamos si viene un ID específico
-
-    sql = """
-        SELECT idCalificacion, idAlumno, NombreCompleto, Calificacion, Categoria
-        FROM calificaciones
-        INNER JOIN alumnos USING(idAlumno)
-        WHERE 1=1
-    """
-    val = []
-
-    if id_filtro:
-        sql += " AND idCalificacion = %s "
-        val.append(id_filtro)
-    elif busqueda:
-        busqueda = f"%{busqueda}%"
-        sql += " AND (NombreCompleto LIKE %s OR Calificacion LIKE %s OR Categoria LIKE %s) "
-        val.extend([busqueda, busqueda, busqueda])
-
-    sql += " ORDER BY Calificacion DESC LIMIT 10"
-
-    try:
-        cursor.execute(sql, tuple(val))
-        registros = cursor.fetchall()
-    except mysql.connector.Error as error:
-        print(f"Error SQL: {error}")
-        registros = []
-    finally:
-        cursor.close()
-
-    return make_response(jsonify(registros))
-
-@app.route("/calificacion", methods=["POST"])
-def guardarCalificacion():
-    con = DatabaseConnection().get_connection()
-    cursor = con.cursor()
-
-    idCalificacion = request.form["idCalificacion"]
-    idAlumno = request.form["idAlumno"]
-    Calificacion = request.form["calificacion"]
-    Categoria = request.form["categoria"]
-
-    if idCalificacion:
-        sql = """
-        UPDATE calificaciones
-        SET idAlumno = %s,
-            Calificacion = %s,
-            Categoria = %s
-        WHERE idCalificacion = %s
-        """
-        val = (idAlumno, Calificacion, Categoria, idCalificacion)
-    else:
-        sql = """
-        INSERT INTO calificaciones (idAlumno, Calificacion, Categoria)
-        VALUES (%s, %s, %s)
-        """
-        val = (idAlumno, Calificacion, Categoria)
-
-    cursor.execute(sql, val)
-    con.commit()
-    cursor.close()
-
-    pusherCalificaciones()
-
-    return make_response(jsonify({}))
-
-@app.route("/calificacion/eliminar", methods=["POST"])
-def eliminarCalificacion():
-    con = DatabaseConnection().get_connection()
-
-    idCalificacion = request.form["idCalificacion"]
-
-    cursor = con.cursor()
-    sql = """
-    DELETE FROM calificaciones
-    WHERE idCalificacion = %s
-    """
-    val = (idCalificacion,)
-
-    cursor.execute(sql, val)
-    con.commit()
-    cursor.close()
-
-    return make_response(jsonify({}))
-
-@app.route("/fechaHora")
-def fechaHora():
-    zona = pytz.timezone("America/Mexico_City")
-    ahora = datetime.datetime.now(zona)
-    return ahora.strftime("%Y-%m-%d %H:%M:%S")
-
-
-@app.route("/log", methods=["GET"])
-def logProductos():
-    actividad = request.args["actividad"]
-    descripcion = request.args["descripcion"]
-
-    tz = pytz.timezone("America/Matamoros")
-    fechaHoraStr = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
-
-    with open("log-busquedas.txt", "a") as f:
-        f.write(f"{actividad}\t{descripcion}\t{fechaHoraStr}\n")
-
-    with open("log-busquedas.txt") as f:
-        log = f.read()
-
-    return log
+def datos_template():
+    return render_template("datos.html")
 
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
-
-
