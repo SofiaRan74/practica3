@@ -1,3 +1,4 @@
+import mysql.connector
 class DatabaseConnection:
     _instance = None
     _connection = None
@@ -24,4 +25,5 @@ class DatabaseConnection:
         if not self._connection.is_connected():
             self._connect()
         return self._connection
+        
 
