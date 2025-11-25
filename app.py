@@ -40,6 +40,14 @@ def requiere_login(fun):
             return jsonify({"error": "No has iniciado sesión"}), 401
         return fun(*args, **kwargs)
     return decorador
+    
+def registrar_log_sesion(usuario, accion):
+    tz = pytz.timezone("America/Matamoros")
+    ahora = datetime.datetime.now(tz)
+    fechaHoraStr = ahora.strftime("%Y-%m-%d %H:%M:%S")
+
+    with open("log-sesiones.txt", "a") as f:
+        f.write(f"{usuario}\t{accion}\t{fechaHoraStr}\n")
 
 
 @app.route("/")
@@ -50,6 +58,26 @@ def index():
 @app.route("/login")
 def login():
     return render_template("login.html")
+
+@app.route("/log", methods=["GET"])
+def logProductos():
+    args = request.args
+    actividad = args["actividad"]
+    descripcion = args["descripcion"]
+
+    tz = pytz.timezone("America/Matamoros")
+    ahora = datetime.datetime.now(tz)
+    fechaHoraStr = ahora.strftime("%Y-%m-%d %H:%M:%S")
+
+    # Guardar en el archivo
+    with open("log-busquedas.txt", "a") as f:
+        f.write(f"{actividad}\t{descripcion}\t{fechaHoraStr}\n")
+
+    # Leer y devolver el archivo
+    with open("log-busquedas.txt") as f:
+        log = f.read()
+
+    return log
 
 
 @app.route("/iniciarSesion", methods=["POST"])
@@ -150,3 +178,4 @@ def fechaHora():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
