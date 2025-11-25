@@ -735,7 +735,7 @@ app.controller("loginCtrl", function ($scope, $http, $rootScope) {
 
             $.get("log", {
                 actividad: "Inicio de sesión",
-                descripcion: `El usuario ${respuesta[0].usr} inició sesión correctamente.`
+                descripcion: `El usuario inició sesión correctamente.`
             });
         
             localStorage.setItem("login", "1")
@@ -978,6 +978,7 @@ app.controller("DatosCtrl", function ($scope, CalificacionAPI) {
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
+
 
 
 
