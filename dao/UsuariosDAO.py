@@ -10,10 +10,10 @@ class UsuariosDAO:
         cursor = con.cursor(dictionary=True)
 
         sql = """
-            SELECT Id_Usuario, Nombre_Usuario, Tipo_Usuario
+            SELECT id_usuario, nombre_usuario
             FROM usuarios
-            WHERE Nombre_Usuario = %s
-            AND Contrasena = %s
+            WHERE nombre_usuario = %s
+            AND contrasena = %s
         """
         cursor.execute(sql, (usuario, contrasena))
         registros = cursor.fetchall()
