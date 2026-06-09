@@ -10,10 +10,10 @@ class UsuariosDAO:
         cursor = con.cursor(dictionary=True)
 
         sql = """
-            SELECT id_usuario, nombre_usuario
+            SELECT Id_Usuario, Nombre_Usuario, Tipo_Usuario
             FROM usuarios
-            WHERE nombre_usuario = %s
-            AND contrasena = %s
+            WHERE Nombre_Usuario = %s
+            AND Contrasena = %s
         """
         cursor.execute(sql, (usuario, contrasena))
         registros = cursor.fetchall()
@@ -26,4 +26,5 @@ class UsuariosDAO:
 
         with open("log-sesiones.txt", "a") as f:
             f.write(f"{usuario}\t{accion}\t{fechaHora}\n")
+
 
