@@ -11,7 +11,7 @@ class UsuariosDAO:
 
         sql = """
             SELECT Id_Usuario, Nombre_Usuario, Tipo_Usuario
-            FROM usuarios
+            FROM Usuarios
             WHERE Nombre_Usuario = %s
             AND Contrasena = %s
         """
