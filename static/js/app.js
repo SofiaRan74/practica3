@@ -31,7 +31,6 @@ function debounce(fun, delay) {
     }
 }
 
-
 const DateTime = luxon.DateTime
 let lxFechaHora
 let diffMs = 0
@@ -978,7 +977,10 @@ app.controller("DatosCtrl", function ($scope, CalificacionAPI) {
 document.addEventListener("DOMContentLoaded", function (event) {
     activeMenuOption(location.hash);
 });
-
+document.getElementById("btnLimpiar").addEventListener("click", function () {
+    document.getElementById("Contbuscar").value = "";
+    document.getElementById("Contbuscar").focus();
+});
 
 
 
