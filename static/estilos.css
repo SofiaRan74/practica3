@@ -1,0 +1,160 @@
+/* ==========================
+   CONTENEDOR PRINCIPAL
+========================== */
+
+.contenedor-ranking{
+    background-color: #f8f9fa;
+    border-radius: 1rem;
+    transition: all .3s ease;
+}
+
+/* ==========================
+   BANNER SUPERIOR
+========================== */
+
+.banner-top{
+    background: linear-gradient(135deg, #007bff, #6610f2);
+    border-radius: 1rem;
+    color: white;
+    overflow: hidden;
+}
+
+/* ==========================
+   TARJETAS DEL TOP
+========================== */
+
+.ranking-card{
+    border: none;
+    border-radius: 1rem;
+    transition: all .3s ease;
+    color: white;
+}
+
+.ranking-card:hover{
+    transform: translateY(-5px);
+}
+
+/* ==========================
+   TOP 1
+========================== */
+
+.puesto-1{
+    background: linear-gradient(135deg, #FFD700, #FFB300);
+    color: #212529;
+}
+
+.puesto-1 .card-header,
+.puesto-1 .card-body,
+.puesto-1 .card-footer{
+    color: #212529 !important;
+}
+
+.puesto-1 .btn{
+    border-color: #212529;
+    color: #212529;
+}
+
+.puesto-1 .btn:hover{
+    background: #212529;
+    color: white;
+}
+
+/* ==========================
+   TOP 2
+========================== */
+
+.puesto-2{
+    background: linear-gradient(135deg, #d7d7d7, #9e9e9e);
+    color: #212529;
+}
+
+.puesto-2 .card-header,
+.puesto-2 .card-body,
+.puesto-2 .card-footer{
+    color: #212529 !important;
+}
+
+.puesto-2 .btn{
+    border-color: #212529;
+    color: #212529;
+}
+
+.puesto-2 .btn:hover{
+    background: #212529;
+    color: white;
+}
+
+/* ==========================
+   TOP 3
+========================== */
+
+.puesto-3{
+    background: linear-gradient(135deg, #cd7f32, #8d5524);
+    color: white;
+}
+
+/* ==========================
+   INPUT DE BÚSQUEDA
+========================== */
+
+.input-ranking{
+    border-radius: .75rem;
+}
+
+/* ==========================
+   MODO OSCURO
+========================== */
+
+[data-bs-theme="dark"] .contenedor-ranking{
+    background-color: #212529;
+    color: white;
+}
+
+[data-bs-theme="dark"] .banner-top{
+    background: linear-gradient(135deg, #1e3a8a, #4c1d95);
+}
+
+[data-bs-theme="dark"] .input-ranking{
+    background-color: #343a40;
+    color: white;
+    border-color: #495057;
+}
+
+[data-bs-theme="dark"] .input-ranking::placeholder{
+    color: #adb5bd;
+}
+
+[data-bs-theme="dark"] .puesto-1{
+    background: linear-gradient(135deg, #a67c00, #7a5c00);
+    color: white;
+}
+
+[data-bs-theme="dark"] .puesto-1 .card-header,
+[data-bs-theme="dark"] .puesto-1 .card-body,
+[data-bs-theme="dark"] .puesto-1 .card-footer{
+    color: white !important;
+}
+
+[data-bs-theme="dark"] .puesto-2{
+    background: linear-gradient(135deg, #5f6368, #3c4043);
+    color: white;
+}
+
+[data-bs-theme="dark"] .puesto-2 .card-header,
+[data-bs-theme="dark"] .puesto-2 .card-body,
+[data-bs-theme="dark"] .puesto-2 .card-footer{
+    color: white !important;
+}
+
+[data-bs-theme="dark"] .puesto-3{
+    background: linear-gradient(135deg, #7b4b22, #4a2d14);
+}
+
+[data-bs-theme="dark"] .btn-outline-light{
+    border-color: rgba(255,255,255,.4);
+}
+
+[data-bs-theme="dark"] .btn-outline-light:hover{
+    background-color: white;
+    color: #212529;
+}
