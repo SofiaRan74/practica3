@@ -65,13 +65,18 @@
                         <label class="form-label fw-semibold">
                             Categoría
                         </label>
-
-                        <input
-                            type="text"
-                            class="form-control input-ranking"
+                    
+                        <select
+                            class="form-select input-ranking"
                             id="categoria"
-                            name="categoria"
-                            placeholder="Ej. Excelente">
+                            name="categoria">
+                            
+                            <option value="" selected disabled>Seleccione una categoría</option>
+                            <option value="Excelente">Excelente</option>
+                            <option value="Bueno">Bueno</option>
+                            <option value="Regular">Regular</option>
+                            <option value="Malo">Malo</option>
+                        </select>
                     </div>
 
                 </div>
