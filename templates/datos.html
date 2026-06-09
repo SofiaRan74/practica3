@@ -1,66 +1,180 @@
 <div class="container mt-4">
 
-    <h3 class="mb-4 fw-bold text-primary">
-        <i class="bi bi-journal-text me-2"></i> Gestión de Calificaciones
-    </h3>
+    <!-- ENCABEZADO -->
+    <div class="card shadow-lg border-0 mb-4 banner-top">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-journal-text fs-1 me-3 text-warning"></i>
+
+                <div>
+                    <h3 class="fw-bold mb-1">
+                        Gestión de Calificaciones
+                    </h3>
+
+                    <p class="mb-0 opacity-75">
+                        Administra, registra y consulta las calificaciones de los alumnos.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- FORMULARIO -->
-    <form id="frmCalificaciones" method="post" class="p-4 bg-light rounded-3 shadow-sm">
-        
-        <input type="hidden" id="idCalificacion" name="idCalificacion">
+    <div class="card border-0 shadow-sm mb-4 contenedor-ranking">
 
-        <div class="row mb-3">
+        <div class="card-header bg-transparent border-0 pt-4 px-4">
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-pencil-square me-2"></i>
+                Registro de Calificaciones
+            </h5>
+        </div>
 
-            <div class="col-md-4">
-                <label class="form-label">Alumno:</label>
-                <select class="form-control" id="idAlumno" name="idAlumno"></select>
-            </div>
+        <div class="card-body">
 
-            <div class="col-md-4">
-                <label class="form-label">Calificación:</label>
-                <select class="form-control" id="calificacion" name="calificacion"></select>
-            </div>
+            <form id="frmCalificaciones" method="post">
 
-            <div class="col-md-4">
-                <label class="form-label">Categoría:</label>
-                <input type="text" class="form-control" id="categoria" name="categoria">
-            </div>
+                <input type="hidden" id="idCalificacion" name="idCalificacion">
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            Alumno
+                        </label>
+
+                        <select
+                            class="form-control input-ranking"
+                            id="idAlumno"
+                            name="idAlumno">
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            Calificación
+                        </label>
+
+                        <select
+                            class="form-control input-ranking"
+                            id="calificacion"
+                            name="calificacion">
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            Categoría
+                        </label>
+
+                        <input
+                            type="text"
+                            class="form-control input-ranking"
+                            id="categoria"
+                            name="categoria"
+                            placeholder="Ej. Excelente">
+                    </div>
+
+                </div>
+
+                <div class="text-end mt-4">
+
+                    <button class="btn btn-primary px-4 fw-semibold">
+
+                        <i class="bi bi-save me-2"></i>
+                        Guardar
+
+                    </button>
+
+                </div>
+
+            </form>
 
         </div>
 
-        <div class="text-end">
-            <button class="btn btn-primary px-4 fw-semibold">
-                <i class="bi bi-save me-1"></i> Guardar
-            </button>
-        </div>
-
-    </form>
+    </div>
 
     <!-- BUSCADOR -->
-    <div class="input-group my-5">
-        <input type="text" class="form-control" id="Contbuscar" name="Contbuscar" placeholder="Buscar...">
-        <button class="btn btn-primary" id="btnBuscar">
-            <i class="bi bi-search"></i> Buscar
-        </button>
+    <div class="card border-0 shadow-sm mb-4 contenedor-ranking">
+
+        <div class="card-body">
+
+            <div class="row align-items-center">
+
+                <div class="col-md-8">
+
+                    <div class="input-group">
+
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+
+                        <input
+                            type="text"
+                            class="form-control input-ranking"
+                            id="Contbuscar"
+                            name="Contbuscar"
+                            placeholder="Buscar alumno o categoría...">
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+
+                    <button
+                        class="btn btn-primary px-4"
+                        id="btnBuscar">
+
+                        Buscar
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
     <!-- TABLA -->
-    <div class="table-responsive">
-        <table class="table table-striped table-bordered table-sm align-middle shadow-sm">
+    <div class="card border-0 shadow-sm contenedor-ranking">
 
-            <thead class="table-primary text-center">
-                <tr>
-                    <th>ID</th>
-                    <th>Alumno</th>
-                    <th>Calificación</th>
-                    <th>Categoría</th>
-                    <th colspan="2">Acciones</th>
-                </tr>
-            </thead>
+        <div class="card-header bg-transparent border-0 pt-4 px-4">
 
-            <tbody id="tbodyCalificacion"></tbody>
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-table me-2"></i>
+                Listado de Calificaciones
+            </h5>
 
-        </table>
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table align-middle table-hover">
+
+                    <thead class="table-primary text-center">
+
+                        <tr>
+                            <th>ID</th>
+                            <th>Alumno</th>
+                            <th>Calificación</th>
+                            <th>Categoría</th>
+                            <th colspan="2">Acciones</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="tbodyCalificacion"></tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
     </div>
 
 </div>
